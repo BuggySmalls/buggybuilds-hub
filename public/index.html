@@ -2,28 +2,162 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Buggy Builds · Pick a design</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BuGGy Builds</title>
+<meta name="description" content="BuGGy Builds: games, tools and side projects, made in Rhode Island.">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;900&family=JetBrains+Mono:wght@500&display=swap">
 <style>
-:root{--bg:#F4F2EE; --card:#fff; --ink:#1A1A1A; --muted:#6B6760; color-scheme:light}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--bg:#161616; --card:#222; --ink:#F2F2F2; --muted:#A3A3A3; color-scheme:dark} }
-:root[data-theme="dark"]{--bg:#161616; --card:#222; --ink:#F2F2F2; --muted:#A3A3A3; color-scheme:dark}
-*{box-sizing:border-box} body{margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, sans-serif}
-.wrap{max-width:900px; margin:0 auto; padding:40px 16px 60px}
-h1{font-size:32px; margin:0 0 6px} p{margin:0 0 26px; color:var(--muted)}
-.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px}
-a{display:flex; flex-direction:column; gap:6px; padding:14px; background:var(--card); border-radius:16px; color:inherit; text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,.08); transition:transform .15s}
-a:hover{transform:translateY(-3px)} a:focus-visible{outline:3px solid #FF5A1F; outline-offset:3px}
-.sw{height:110px; border-radius:10px} b{font-size:18px} small{color:var(--muted)}
+/* Index: a Swiss-style contents page. Huge type, one red, numbered rows, a changelog that sets the version number. */
+:root{--paper:#F1EFEA; --ink:#111111; --muted:#77736B; --line:#111111; --red:#FF3B1F; --soft:#E4E1DA; color-scheme:light}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--paper:#121211; --ink:#F1EFEA; --muted:#8F8A80; --line:#F1EFEA; --soft:#262523; color-scheme:dark} }
+:root[data-theme="dark"]{--paper:#121211; --ink:#F1EFEA; --muted:#8F8A80; --line:#F1EFEA; --soft:#262523; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper); color:var(--ink); font:500 16px/1.4 'Inter Tight', system-ui, sans-serif; min-height:100vh; overflow-x:hidden}
+::selection{background:var(--red); color:#fff}
+.wrap{max-width:1240px; margin:0 auto; padding:20px 20px 40px}
+.mono{font:500 12px/1.5 'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:.04em}
+.top{position:sticky; top:0; z-index:5; background:var(--paper); display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding:14px 0; border-bottom:2px solid var(--line)}
+.brand{text-transform:none}
+.top a{color:inherit; text-decoration:none} .top a:hover{color:var(--red)}
+.top .v{text-align:right} .top .v b{color:var(--red); font-weight:500}
+.top .v a{display:inline-flex; gap:8px; align-items:center}
+.dot{width:7px; height:7px; border-radius:50%; background:var(--red); display:inline-block; animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+h1{font:900 clamp(64px,17vw,250px)/.82 'Inter Tight', sans-serif; letter-spacing:-.065em; margin:26px 0 10px; margin-left:-.05em}
+h1 i{font-style:normal; color:var(--red)}
+.intro{display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:18px 0 40px; border-bottom:2px solid var(--line)}
+.intro p{margin:0; font-size:clamp(20px,2.3vw,28px); line-height:1.15; letter-spacing:-.02em; max-width:22ch}
+.intro .mono{color:var(--muted); align-self:end; text-align:right}
+.sec{display:grid; grid-template-columns:80px 1fr; gap:20px; padding:12px 0; border-bottom:1px solid var(--line); color:var(--muted)}
+.sec b{color:var(--ink); font-weight:500}
+.list{list-style:none; margin:0; padding:0}
+.row{display:grid; grid-template-columns:80px 1fr 200px 140px 40px; align-items:baseline; gap:20px; padding:22px 0 20px; border-bottom:1px solid var(--line); text-decoration:none; color:inherit; position:relative}
+.row .n{font:500 13px 'JetBrains Mono', monospace; color:var(--muted)}
+.row .t{font:700 clamp(36px,6.4vw,92px)/.9 'Inter Tight', sans-serif; letter-spacing:-.045em; transition:transform .35s cubic-bezier(.2,.8,.2,1), color .2s}
+.row .k,.row .s{color:var(--muted)}
+.row .s b{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--red); margin-right:6px; vertical-align:1px}
+.row .a{font:700 34px/1 'Inter Tight'; text-align:right; transition:transform .3s}
+.row .d{grid-column:2 / 5; max-width:56ch; color:var(--muted); font-size:17px; line-height:1.4; margin-top:10px; max-height:0; overflow:hidden; opacity:0; transition:max-height .4s, opacity .3s, margin .3s}
+a.row:hover .t, a.row:focus-visible .t{transform:translateX(18px); color:var(--red)}
+a.row:hover .a, a.row:focus-visible .a{transform:translate(6px,-6px) rotate(-45deg); color:var(--red)}
+a.row:hover .d, a.row:focus-visible .d{max-height:120px; opacity:1}
+a.row:focus-visible{outline:none}
+.row.soon .t{color:transparent; -webkit-text-stroke:1.5px var(--ink)}
+.row.soon .s b{background:var(--muted); animation:pulse 1.6s infinite}
+.row.soon .d{max-height:120px; opacity:1}
+.marquee{overflow:hidden; border-bottom:2px solid var(--line); padding:20px 0; margin:0 -20px}
+.track{display:flex; width:max-content; animation:slide 38s linear infinite}
+.track span{font:900 clamp(44px,8vw,110px)/1 'Inter Tight'; letter-spacing:-.05em; white-space:nowrap; padding-right:.5em}
+.track span:nth-child(odd){color:transparent; -webkit-text-stroke:1.5px var(--ink)}
+.track span em{font-style:normal; color:var(--red); -webkit-text-stroke:0}
+@keyframes slide{to{transform:translateX(-50%)}}
+.cols{display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:2px solid var(--line)}
+.col{padding:26px 0 30px} .col + .col{border-left:1px solid var(--line); padding-left:20px}
+.col:first-child{padding-right:20px}
+h2{font:700 clamp(32px,4vw,52px)/.95 'Inter Tight'; letter-spacing:-.04em; margin:6px 0 18px}
+h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spacing:.04em; vertical-align:top; margin-left:6px}
+.log{list-style:none; margin:0; padding:0}
+.log li{display:grid; grid-template-columns:84px 1fr; gap:14px; padding:12px 0; border-top:1px solid var(--soft)}
+.log li:first-child{border-top:0}
+.log .ver{font:700 20px/1 'Inter Tight'; letter-spacing:-.02em}
+.log li:first-child .ver{color:var(--red)}
+.log .when{color:var(--muted); margin-bottom:4px}
+.log ul{margin:0; padding-left:18px} .log ul li{display:list-item; border:0; padding:2px 0}
+.facts{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:22px; border-top:1px solid var(--line)}
+.facts div{padding:12px 0; border-bottom:1px solid var(--soft)}
+.facts div:nth-child(odd){padding-right:14px}
+.facts b{display:block; font:700 30px/1 'Inter Tight'; letter-spacing:-.03em; margin-top:4px}
+.about p{font-size:clamp(19px,2vw,24px); line-height:1.25; letter-spacing:-.015em; margin:0 0 14px; max-width:30ch}
+.peek{position:fixed; left:0; top:0; width:300px; aspect-ratio:4/3; pointer-events:none; opacity:0; transform:translate(-50%,-50%) scale(.85) rotate(-3deg); transition:opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1); z-index:10; box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.peek.on{opacity:1; transform:translate(-50%,-50%) scale(1) rotate(-3deg)}
+.peek svg{width:100%; height:100%; display:block}
+.thumb{display:none}
+.foot{display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding-top:18px; color:var(--muted)}
+.foot a{color:inherit} .foot span:last-child{text-align:right}
+.big{font:900 clamp(40px,11vw,160px)/.85 'Inter Tight'; letter-spacing:-.06em; margin:40px 0 0; color:var(--soft); user-select:none}
+.big i{font-style:normal; color:var(--red)}
+@media (max-width:760px){
+  .top{grid-template-columns:1fr 1fr} .top span:nth-child(2),.top span:nth-child(3){display:none}
+  .intro{grid-template-columns:1fr} .intro .mono{text-align:left}
+  .sec{grid-template-columns:44px 1fr; gap:10px}
+  .row{grid-template-columns:44px 1fr 30px; gap:10px; padding:18px 0} .row .k,.row .s{display:none} .row .a{font-size:26px}
+  .row .d{grid-column:2 / 4; max-height:none; opacity:1; font-size:15px; margin-top:6px}
+  .thumb{display:block; grid-column:2 / 4; aspect-ratio:16/9; margin-top:12px} .thumb svg{width:100%; height:100%; display:block}
+  .peek{display:none}
+  .cols{grid-template-columns:1fr} .col + .col{border-left:0; border-top:1px solid var(--line); padding-left:0} .col:first-child{padding-right:0}
+  .foot{grid-template-columns:1fr 1fr} .foot span:nth-child(2),.foot span:nth-child(3){display:none}
+}
+@media (prefers-reduced-motion:reduce){ .track{animation:none} .dot,.row.soon .s b{animation:none} }
 </style>
 </head>
-<body><div class="wrap">
-<h1>Buggy Builds: pick a home page</h1>
-<p>Four test designs. Each has the same three cards: Fretfire, Cereal Bowlers and a coming-soon spot.</p>
-<div class="grid">
-  <a href="/designs/arcade/"><span class="sw" style="background:linear-gradient(135deg,#0B0618 40%,#FF3EA5 40% 60%,#3BF0FF 60%)"></span><b>A · Arcade</b><small>Neon cabinets, CRT scanlines, pick with arrow keys.</small></a>
-  <a href="/designs/desktop/"><span class="sw" style="background:#2E8C86; box-shadow:inset 0 0 0 26px #2E8C86, inset 0 0 0 30px #E7E3D8"></span><b>B · Retro desktop</b><small>The site is an old computer. Icons, windows, Start menu.</small></a>
-  <a href="/designs/scrapbook/"><span class="sw" style="background:radial-gradient(#9C6B3E 1px,transparent 1.5px) 0 0/8px 8px,#C8955F"></span><b>C · Corkboard</b><small>Polaroids pinned up, tape, sticky notes, marker.</small></a>
-  <a href="/designs/editorial/"><span class="sw" style="background:linear-gradient(#F1EFEA 70%,#FF3B1F 70%); box-shadow:inset 0 0 0 1px #ccc"></span><b>D · Index</b><small>Huge type, one red, magazine contents page.</small></a>
-</div></div></body></html>
+<body>
+<div class="wrap" id="top">
+  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span><a href="#index">Index of works</a></span><span>Rhode Island, USA</span><span class="v"><a href="#changelog" title="See what changed"><span class="dot"></span>Version <b id="ver">1.00</b></a></span></header>
+  <h1>BuGGy<br>Builds<i>.</i></h1>
+  <div class="intro"><p>Games, tools and side projects, made for me and my friends.</p><span class="mono">Two live · one in the works<br>Last updated <span id="updated">Oct 26, 2026</span></span></div>
+
+  <div class="sec mono" id="index"><span>§ 1</span><span><b>Index of works</b> · hover for a look, tap to open</span></div>
+  <ol class="list">
+    <li><a class="row" href="/fretfire/" data-peek="fret"><span class="n">01</span><span class="t">Fretfire</span><span class="k mono">Rhythm game<br>Browser · keys / touch</span><span class="s mono"><b></b>Test build</span><span class="a">↗</span><span class="d">A Guitar Hero-style rhythm game you play in the browser. Four lanes, two original songs, or drop in your own MP3. Keys D F J K, or tap the lanes on your phone.</span><span class="thumb" data-art="fret"></span></a></li>
+    <li><a class="row" href="https://cerealbowlers.org" data-peek="bowl"><span class="n">02</span><span class="t">Cereal Bowlers</span><span class="k mono">League site<br>cerealbowlers.org</span><span class="s mono"><b></b>Live, Wednesdays</span><span class="a">↗</span><span class="d">The site for our Wednesday night bowling league at Kingstown Bowl. Standings, stats, records, pick'em, betchas and a whole lot of shit talk.</span><span class="thumb" data-art="bowl"></span></a></li>
+    <li><div class="row soon"><span class="n">03</span><span class="t">Coming soon</span><span class="k mono">Next build<br>On the bench</span><span class="s mono"><b></b>In progress</span><span class="a">·</span><span class="d">Something new is half-built on the bench. It'll show up here when it's ready.</span></div></li>
+  </ol>
+
+  <div class="marquee" aria-hidden="true"><div class="track" id="track"></div></div>
+
+  <div class="cols">
+    <section class="col" id="changelog"><div class="sec mono" style="border:0; padding:0; grid-template-columns:1fr"><span>§ 2 · Changelog</span></div>
+      <h2>What's new<small id="verSmall">v1.00</small></h2>
+      <ol class="log" id="log"></ol>
+    </section>
+    <section class="col about" id="about"><div class="sec mono" style="border:0; padding:0; grid-template-columns:1fr"><span>§ 3 · About</span></div>
+      <h2>About</h2>
+      <p>BuGGy Builds is where I put the things I make for fun: games to play with friends, sites for the stuff we do together, and whatever I'm tinkering with next.</p>
+      <p style="color:var(--muted)">Built by Nick in Rhode Island. Every update bumps the version in the top corner.</p>
+      <div class="facts mono"><div>Live projects<b>02</b></div><div>On the bench<b>01</b></div><div>Version<b id="verFact">1.00</b></div><div>Since<b>2026</b></div></div>
+    </section>
+  </div>
+
+  <p class="big" aria-hidden="true">BuGGy Builds<i>.</i></p>
+  <footer class="foot mono"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span>Set in Inter Tight &amp; JetBrains Mono</span><span id="footVer">v1.00</span><span><a href="#top">Back to top ↑</a></span></footer>
+</div>
+<div class="peek" id="peek"></div>
+
+<script>
+/* Changelog: newest first. The top entry sets the version shown in the corner.
+   Every update to the site adds a new entry here and bumps the version by .01 (v1.01, v1.02, ...). */
+const LOG = [
+  { v: '1.00', date: '2026-10-26', items: ['New home page: the Index.', 'Fretfire and Cereal Bowlers on the board, plus one spot for what’s next.', 'Version tracking starts here.'] },
+];
+
+const fmt = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const cur = LOG[0];
+for (const id of ['ver', 'verFact']) document.getElementById(id).textContent = cur.v;
+document.getElementById('verSmall').textContent = 'v' + cur.v; document.getElementById('footVer').textContent = 'v' + cur.v;
+document.getElementById('updated').textContent = fmt(cur.date);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+document.getElementById('log').innerHTML = LOG.map(e => `<li><span class="ver">v${esc(e.v)}</span><div><div class="when mono">${fmt(e.date)}</div><ul>${e.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div></li>`).join('');
+
+const words = ['Fretfire', 'Cereal Bowlers', 'Something new soon', 'BuGGy Builds'];
+const run = words.map(w => `<span>${w}<em> ✳</em></span>`).join('');
+document.getElementById('track').innerHTML = run + run;
+
+const ART = {
+  fret: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#FF3B1F"/><g fill="#111"><rect x="60" width="44" height="225" opacity=".12"/><rect x="104" width="44" height="225" opacity=".2"/><rect x="148" width="44" height="225" opacity=".12"/><rect x="192" width="44" height="225" opacity=".2"/></g><g fill="#fff"><rect x="66" y="30" width="32" height="12" rx="6"/><rect x="154" y="80" width="32" height="12" rx="6"/><rect x="110" y="120" width="32" height="12" rx="6"/><rect x="198" y="50" width="32" height="12" rx="6"/></g><g fill="none" stroke="#111" stroke-width="5"><circle cx="82" cy="188" r="14"/><circle cx="126" cy="188" r="14"/><circle cx="170" cy="188" r="14"/><circle cx="214" cy="188" r="14"/></g></svg>`,
+  bowl: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#111"/><circle cx="150" cy="126" r="70" fill="#FF3B1F"/><g fill="#111"><circle cx="128" cy="104" r="10"/><circle cx="160" cy="98" r="10"/><circle cx="146" cy="128" r="10"/></g><g fill="#F1EFEA"><rect x="40" y="40" width="14" height="40" rx="7"/><rect x="60" y="40" width="14" height="40" rx="7"/><rect x="50" y="26" width="14" height="40" rx="7"/></g></svg>`
+};
+document.querySelectorAll('.thumb').forEach(t => t.innerHTML = ART[t.dataset.art]);
+const peek = document.getElementById('peek'); let tx = 0, ty = 0, x = 0, y = 0;
+document.querySelectorAll('[data-peek]').forEach(r => { r.addEventListener('mouseenter', () => { peek.innerHTML = ART[r.dataset.peek]; peek.classList.add('on'); }); r.addEventListener('mouseleave', () => peek.classList.remove('on')); });
+addEventListener('mousemove', e => { tx = e.clientX + 170; ty = e.clientY; });
+(function f() { x += (tx - x) * .18; y += (ty - y) * .18; peek.style.left = Math.min(innerWidth - 160, x) + 'px'; peek.style.top = y + 'px'; requestAnimationFrame(f); })();
+// number keys jump straight to a project
+addEventListener('keydown', e => { if (e.target.closest('input,textarea')) return; const rows = [...document.querySelectorAll('a.row')]; const k = +e.key; if (k >= 1 && k <= rows.length) rows[k - 1].click(); });
+try { document.getElementById('yr').textContent = new Date().getFullYear(); } catch (e) {}
+</script>
+</body>
+</html>
