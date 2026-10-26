@@ -45,6 +45,7 @@ h1 span{color:var(--glow); text-shadow:0 0 18px rgba(127,224,79,.45)}
 .row{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
 .btn{font:700 15px var(--body); color:var(--ink); background:var(--chip); border:0; border-radius:14px; padding:11px 16px; cursor:pointer; box-shadow:0 4px 0 var(--line)}
 .btn:active{transform:translateY(3px); box-shadow:0 1px 0 var(--line)}
+.btn.buy{background:var(--accent); color:#2B1608; text-decoration:none; box-shadow:0 4px 0 #C9643A}
 .btn.primary{background:var(--glow); color:var(--glow-ink); box-shadow:0 4px 0 #4E9E28}
 .btn:focus-visible,.fig:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
 .sel{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
@@ -86,10 +87,10 @@ h2{font:700 26px/1.1 var(--display); margin:0}
       <div>
         <div class="label">Your Smiski</div>
         <div class="name" id="pickName">…</div>
-        <div class="coll"><span class="chip g" id="pickColl">…</span><span class="chip" id="pickNo">…</span><a class="official" id="pickLink" href="#" target="_blank" rel="noopener">See the real figure on smiski.com ↗</a></div>
+        <div class="coll"><span class="chip g" id="pickColl">…</span><span class="chip" id="pickNo">…</span><a class="official" id="pickLink" href="#" target="_blank" rel="noopener">See the real figure on smiski.com ↗</a><a class="official" id="pickShop" href="#" target="_blank" rel="noopener">Buy it ↗</a></div>
       </div>
     </div>
-    <div class="row"><button class="btn primary" id="randFig" type="button">Random Smiski</button><button class="btn" id="randAll" type="button">Surprise me (any scene)</button></div>
+    <div class="row"><a class="btn buy" id="buyBtn" href="#" target="_blank" rel="noopener">Buy this Smiski ↗</a><button class="btn primary" id="randFig" type="button">Random Smiski</button><button class="btn" id="randAll" type="button">Surprise me (any scene)</button></div>
     <div class="sel">
       <select id="selSeries" aria-label="Collection"></select>
       <select id="selFig" aria-label="Smiski"></select>
@@ -104,14 +105,14 @@ h2{font:700 26px/1.1 var(--display); margin:0}
       <div class="row" style="margin:0"><button class="btn" id="prev" type="button" aria-label="Previous scene">←</button><button class="btn" id="next" type="button" aria-label="Next scene">→</button><button class="btn" id="save" type="button">Save image</button></div>
     </div>
     <div class="thumbs" id="thumbs"></div>
-    <p class="hint">The glowing pad is where your Smiski stands.</p>
+    <p class="hint">The glowing pad is where your Smiski stands. Smiski come blind-boxed, so buying a series gets you a random figure from it.</p>
   </section>
 
   <div class="section"><h2>All Smiski</h2><span class="count" id="allCount"></span></div>
   <input class="search" id="search" type="search" placeholder="Search by name or collection" autocomplete="off">
   <div id="all"></div>
 
-  <p class="foot">Names and collections come from the official Smiski site. Smiski is a trademark of Dreams Inc.; this is a fan-made scene generator and isn't affiliated with them. Secret figures aren't listed because the official pages don't name them.</p>
+  <p class="foot">Names and collections come from the official Smiski site. Smiski is a trademark of Dreams Inc.; this is a fan-made scene generator and isn't affiliated with them. Buy links go to the official Dreams USA store. Secret figures aren't listed because the official pages don't name them.</p>
 </div>
 
 <script type="module">
@@ -140,6 +141,8 @@ function show(fig, sceneK = 0, push = true) {
   $('pickColl').textContent = fig.series.name;
   $('pickNo').textContent = `${fig.fi + 1} of ${fig.series.figs.length}`;
   $('pickLink').href = fig.series.url;
+  $('pickShop').href = $('buyBtn').href = fig.series.shop;
+  $('buyBtn').textContent = /products\//.test(fig.series.shop) ? `Buy the ${fig.series.name} ↗` : 'Shop Smiski ↗';
   $('selSeries').value = String(fig.si); fillFigs(fig.si); $('selFig').value = String(fig.fi);
   drawScene();
   document.querySelectorAll('.fig').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === fig.id));
