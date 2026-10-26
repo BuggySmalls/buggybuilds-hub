@@ -2,204 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Smiski Generator</title>
-<meta name="description" content="Pick any real Smiski from all 19 collections and get a hand-built clay scene to set it in.">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buggy Builds · Pick a design</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <style>
-/* Clay studio: warm putty background, soft rounded cards, glow-in-the-dark green accent */
-:root{
-  --bg:#F3EBDD; --card:#FFFBF4; --ink:#2B2620; --muted:#6E655A; --line:#E3D8C6; --chip:#F1E7D6;
-  --glow:#7FE04F; --glow-ink:#1E3A10; --accent:#FF8A5C; --shadow:0 6px 0 #E0D2BC, 0 14px 30px rgba(80,60,30,.10);
-  --display:'Fredoka', 'Nunito', system-ui, sans-serif; --body:'Nunito', system-ui, sans-serif;
-  color-scheme:light;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){ --bg:#141A14; --card:#1E261D; --ink:#EEF3E6; --muted:#A5B09C; --line:#2E3A2C; --chip:#273225; --glow:#9BFF6A; --glow-ink:#0E2006; --shadow:0 6px 0 #0B100B, 0 14px 30px rgba(0,0,0,.35); color-scheme:dark; }
-}
-:root[data-theme="dark"]{ --bg:#141A14; --card:#1E261D; --ink:#EEF3E6; --muted:#A5B09C; --line:#2E3A2C; --chip:#273225; --glow:#9BFF6A; --glow-ink:#0E2006; --shadow:0 6px 0 #0B100B, 0 14px 30px rgba(0,0,0,.35); color-scheme:dark; }
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0; background:var(--bg); color:var(--ink); font:500 16px/1.5 var(--body)}
-a{color:inherit}
-.wrap{max-width:980px; margin:0 auto; padding:0 16px 48px}
-.top{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 0}
-.back{font:700 14px var(--body); text-decoration:none; color:var(--muted)}
-.back:hover{color:var(--ink)}
-.count{font:700 13px var(--body); color:var(--muted)}
-h1{font:700 clamp(34px,7vw,56px)/1 var(--display); margin:6px 0 6px; letter-spacing:-.01em}
-h1 span{color:var(--glow); text-shadow:0 0 18px rgba(127,224,79,.45)}
-.lede{margin:0 0 20px; color:var(--muted); max-width:56ch}
-.card{background:var(--card); border-radius:22px; box-shadow:var(--shadow); padding:20px}
-.pickhead{display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center}
-.orb{width:92px; height:92px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #E9FFD8 0 12%, #B8FF8A 30%, #7FE04F 60%, #3E8A22 100%); box-shadow:0 0 30px rgba(127,224,79,.55), inset -8px -10px 18px rgba(30,70,10,.35); flex:none}
-.label{font:800 12px var(--body); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
-.name{font:700 clamp(26px,5vw,38px)/1.05 var(--display); margin:4px 0 8px}
-.coll{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
-.chip{display:inline-flex; align-items:center; gap:6px; font:800 13px var(--body); background:var(--chip); border-radius:999px; padding:6px 12px}
-.chip.g{background:var(--glow); color:var(--glow-ink)}
-.official{font:700 14px var(--body); color:var(--muted)}
-.row{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
-.btn{font:700 15px var(--body); color:var(--ink); background:var(--chip); border:0; border-radius:14px; padding:11px 16px; cursor:pointer; box-shadow:0 4px 0 var(--line)}
-.btn:active{transform:translateY(3px); box-shadow:0 1px 0 var(--line)}
-.btn.buy{background:var(--accent); color:#2B1608; text-decoration:none; box-shadow:0 4px 0 #C9643A}
-.btn.primary{background:var(--glow); color:var(--glow-ink); box-shadow:0 4px 0 #4E9E28}
-.btn:focus-visible,.fig:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
-.sel{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
-select{font:700 15px var(--body); color:var(--ink); background:var(--chip); border:0; border-radius:12px; padding:10px 12px; max-width:100%}
-.section{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:30px 0 12px}
-h2{font:700 26px/1.1 var(--display); margin:0}
-.stage{border-radius:18px; overflow:hidden; background:#000; aspect-ratio:8/5}
-.stage svg{display:block; width:100%; height:100%}
-.scenebar{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-top:14px}
-.sname{font:700 22px/1.15 var(--display); margin:0}
-.smeta{color:var(--muted); font-size:14px}
-.thumbs{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px}
-.thumb{border:0; padding:0; border-radius:12px; overflow:hidden; cursor:pointer; aspect-ratio:8/5; background:#000; outline:3px solid transparent; outline-offset:2px}
-.thumb[aria-pressed="true"]{outline-color:var(--glow)}
-.thumb svg{display:block; width:100%; height:100%}
-.hint{font-size:14px; color:var(--muted); margin:10px 0 0}
-.search{width:100%; font:700 15px var(--body); color:var(--ink); background:var(--card); border:2px solid var(--line); border-radius:14px; padding:11px 14px; margin-bottom:14px}
-.series{margin-bottom:18px}
-.series h3{font:700 18px var(--display); margin:0 0 8px; display:flex; gap:8px; align-items:baseline}
-.series h3 a{font:700 12px var(--body); color:var(--muted)}
-.figs{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px}
-.fig{font:700 14px/1.25 var(--body); text-align:left; color:var(--ink); background:var(--card); border:2px solid var(--line); border-radius:14px; padding:10px 12px; cursor:pointer; display:flex; gap:8px; align-items:center}
-.fig i{width:12px; height:12px; border-radius:50%; background:#C9E8B6; flex:none}
-.fig[aria-pressed="true"]{border-color:var(--glow); background:color-mix(in srgb,var(--glow) 18%,var(--card))}
-.fig[aria-pressed="true"] i{background:var(--glow); box-shadow:0 0 10px var(--glow)}
-.foot{margin-top:28px; font-size:13px; color:var(--muted)}
-@media (max-width:560px){ .pickhead{grid-template-columns:1fr} .orb{width:64px; height:64px} .thumbs{gap:6px} }
+:root{--bg:#F4F2EE; --card:#fff; --ink:#1A1A1A; --muted:#6B6760; color-scheme:light}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--bg:#161616; --card:#222; --ink:#F2F2F2; --muted:#A3A3A3; color-scheme:dark} }
+:root[data-theme="dark"]{--bg:#161616; --card:#222; --ink:#F2F2F2; --muted:#A3A3A3; color-scheme:dark}
+*{box-sizing:border-box} body{margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, sans-serif}
+.wrap{max-width:900px; margin:0 auto; padding:40px 16px 60px}
+h1{font-size:32px; margin:0 0 6px} p{margin:0 0 26px; color:var(--muted)}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px}
+a{display:flex; flex-direction:column; gap:6px; padding:14px; background:var(--card); border-radius:16px; color:inherit; text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,.08); transition:transform .15s}
+a:hover{transform:translateY(-3px)} a:focus-visible{outline:3px solid #FF5A1F; outline-offset:3px}
+.sw{height:110px; border-radius:10px} b{font-size:18px} small{color:var(--muted)}
 </style>
 </head>
-<body>
-<div class="wrap">
-  <div class="top"><span class="count" id="count"></span></div>
-  <h1>Smiski <span>Generator</span></h1>
-  <p class="lede">Every real Smiski from all 19 collections, each with three hand-built clay scenes to set it in. Pick one or hit random.</p>
-
-  <section class="card" aria-labelledby="pickName">
-    <div class="pickhead">
-      <div class="orb" aria-hidden="true"></div>
-      <div>
-        <div class="label">Your Smiski</div>
-        <div class="name" id="pickName">…</div>
-        <div class="coll"><span class="chip g" id="pickColl">…</span><span class="chip" id="pickNo">…</span><a class="official" id="pickLink" href="#" target="_blank" rel="noopener">See the real figure on smiski.com ↗</a><a class="official" id="pickShop" href="#" target="_blank" rel="noopener">Buy it ↗</a></div>
-      </div>
-    </div>
-    <div class="row"><a class="btn buy" id="buyBtn" href="#" target="_blank" rel="noopener">Buy this Smiski ↗</a><button class="btn primary" id="randFig" type="button">Random Smiski</button><button class="btn" id="randAll" type="button">Surprise me (any scene)</button></div>
-    <div class="sel">
-      <select id="selSeries" aria-label="Collection"></select>
-      <select id="selFig" aria-label="Smiski"></select>
-    </div>
-  </section>
-
-  <div class="section"><h2>Clay scenes</h2><span class="count" id="sceneNo"></span></div>
-  <section class="card">
-    <div class="stage" id="stage"></div>
-    <div class="scenebar">
-      <div><p class="sname" id="sceneName"></p><div class="smeta" id="sceneMeta"></div></div>
-      <div class="row" style="margin:0"><button class="btn" id="prev" type="button" aria-label="Previous scene">←</button><button class="btn" id="next" type="button" aria-label="Next scene">→</button><button class="btn" id="save" type="button">Save image</button></div>
-    </div>
-    <div class="thumbs" id="thumbs"></div>
-    <p class="hint">The glowing pad is where your Smiski stands. Smiski come blind-boxed, so buying a series gets you a random figure from it.</p>
-  </section>
-
-  <div class="section"><h2>All Smiski</h2><span class="count" id="allCount"></span></div>
-  <input class="search" id="search" type="search" placeholder="Search by name or collection" autocomplete="off">
-  <div id="all"></div>
-
-  <p class="foot">Names and collections come from the official Smiski site. Smiski is a trademark of Dreams Inc.; this is a fan-made scene generator and isn't affiliated with them. Buy links go to the official Dreams USA store. Secret figures aren't listed because the official pages don't name them.</p>
-</div>
-
-<script type="module">
-import { SERIES } from './data.js';
-import { parseScene, renderScene, BACKDROPS, MOOD_NAMES } from './clay.js';
-
-const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-// flat lists
-const FIGS = []; const SCENES = [];
-SERIES.forEach((se, si) => se.figs.forEach(([name, scenes], fi) => {
-  const fig = { si, fi, name, series: se, id: `${se.id}--${slug(name)}`, scenes: [] };
-  scenes.forEach((str, k) => { const sc = { ...parseScene(str), fig, k, n: SCENES.length + 1 }; fig.scenes.push(sc); SCENES.push(sc); });
-  FIGS.push(fig);
-}));
-function slug(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
-
-$('count').textContent = `${FIGS.length} Smiski · ${SCENES.length} clay scenes`;
-$('allCount').textContent = `${SERIES.length} collections`;
-
-let cur = FIGS[0], k = 0;
-
-function show(fig, sceneK = 0, push = true) {
-  cur = fig; k = sceneK;
-  $('pickName').textContent = fig.name;
-  $('pickColl').textContent = fig.series.name;
-  $('pickNo').textContent = `${fig.fi + 1} of ${fig.series.figs.length}`;
-  $('pickLink').href = fig.series.url;
-  $('pickShop').href = $('buyBtn').href = fig.series.shop;
-  $('buyBtn').textContent = /products\//.test(fig.series.shop) ? `Buy the ${fig.series.name} ↗` : 'Shop Smiski ↗';
-  $('selSeries').value = String(fig.si); fillFigs(fig.si); $('selFig').value = String(fig.fi);
-  drawScene();
-  document.querySelectorAll('.fig').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === fig.id));
-  if (push) history.replaceState(null, '', `#${fig.id}/${k + 1}`);
-  document.title = `${fig.name} · Smiski Generator`;
-}
-function drawScene() {
-  const sc = cur.scenes[k];
-  $('stage').innerHTML = renderScene(sc, sc.n, { uid: 'm' });
-  $('sceneName').textContent = sc.title;
-  $('sceneMeta').textContent = `${BACKDROPS[sc.bd]?.name || ''} · ${MOOD_NAMES[sc.mood] || ''}`;
-  $('sceneNo').textContent = `Scene ${k + 1} of ${cur.scenes.length} · #${sc.n} of ${SCENES.length}`;
-  $('thumbs').innerHTML = cur.scenes.map((s, i) => `<button class="thumb" type="button" data-k="${i}" aria-pressed="${i === k}" aria-label="Scene ${i + 1}: ${esc(s.title)}">${renderScene(s, s.n, { uid: 't' + i })}</button>`).join('');
-  history.replaceState(null, '', `#${cur.id}/${k + 1}`);
-}
-function fillFigs(si) { $('selFig').innerHTML = SERIES[si].figs.map(([n], i) => `<option value="${i}">${esc(n)}</option>`).join(''); }
-$('selSeries').innerHTML = SERIES.map((s, i) => `<option value="${i}">${esc(s.name)}</option>`).join('');
-$('selSeries').addEventListener('change', e => show(FIGS.find(f => f.si === +e.target.value && f.fi === 0)));
-$('selFig').addEventListener('change', e => show(FIGS.find(f => f.si === +$('selSeries').value && f.fi === +e.target.value)));
-$('randFig').addEventListener('click', () => { let f; do f = FIGS[Math.floor(Math.random() * FIGS.length)]; while (f === cur && FIGS.length > 1); show(f, Math.floor(Math.random() * f.scenes.length)); });
-$('randAll').addEventListener('click', () => { const s = SCENES[Math.floor(Math.random() * SCENES.length)]; show(s.fig, s.k); });
-$('prev').addEventListener('click', () => { k = (k + cur.scenes.length - 1) % cur.scenes.length; drawScene(); });
-$('next').addEventListener('click', () => { k = (k + 1) % cur.scenes.length; drawScene(); });
-$('thumbs').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { k = +b.dataset.k; drawScene(); } });
-
-// whole collection, grouped by series
-function renderAll(q = '') {
-  q = q.trim().toLowerCase();
-  $('all').innerHTML = SERIES.map(se => {
-    const list = FIGS.filter(f => f.series === se && (!q || f.name.toLowerCase().includes(q) || se.name.toLowerCase().includes(q)));
-    if (!list.length) return '';
-    return `<div class="series"><h3>${esc(se.name)} <a href="${se.url}" target="_blank" rel="noopener">official page ↗</a></h3><div class="figs">${list.map(f => `<button class="fig" type="button" data-id="${f.id}" aria-pressed="${f === cur}"><i></i>${esc(f.name)}</button>`).join('')}</div></div>`;
-  }).join('') || '<p class="hint">No Smiski match that.</p>';
-}
-$('search').addEventListener('input', e => renderAll(e.target.value));
-$('all').addEventListener('click', e => { const b = e.target.closest('.fig'); if (!b) return; show(FIGS.find(f => f.id === b.dataset.id)); window.scrollTo({ top: 0, behavior: 'smooth' }); });
-
-// save the current scene as a PNG
-$('save').addEventListener('click', async () => {
-  const btn = $('save'); btn.disabled = true;
-  try {
-    const sc = cur.scenes[k];
-    const svg = renderScene(sc, sc.n, { uid: 'x' }).replace('<svg ', '<svg width="1600" height="1000" ');
-    const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    await img.decode();
-    const c = document.createElement('canvas'); c.width = 1600; c.height = 1000; c.getContext('2d').drawImage(img, 0, 0);
-    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${cur.id}-scene-${k + 1}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  } catch (e) { console.error(e); } finally { btn.disabled = false; }
-});
-
-// start: from the link, or a random Smiski
-renderAll();
-const [hid, hk] = location.hash.slice(1).split('/');
-const start = FIGS.find(f => f.id === hid);
-if (start) show(start, Math.max(0, Math.min(start.scenes.length - 1, (+hk || 1) - 1)), false);
-else { const f = FIGS[Math.floor(Math.random() * FIGS.length)]; show(f, 0); }
-</script>
-</body>
-</html>
+<body><div class="wrap">
+<h1>Buggy Builds: pick a home page</h1>
+<p>Four test designs. Each has the same three cards: Fretfire, Cereal Bowlers and a coming-soon spot.</p>
+<div class="grid">
+  <a href="/designs/arcade/"><span class="sw" style="background:linear-gradient(135deg,#0B0618 40%,#FF3EA5 40% 60%,#3BF0FF 60%)"></span><b>A · Arcade</b><small>Neon cabinets, CRT scanlines, pick with arrow keys.</small></a>
+  <a href="/designs/desktop/"><span class="sw" style="background:#2E8C86; box-shadow:inset 0 0 0 26px #2E8C86, inset 0 0 0 30px #E7E3D8"></span><b>B · Retro desktop</b><small>The site is an old computer. Icons, windows, Start menu.</small></a>
+  <a href="/designs/scrapbook/"><span class="sw" style="background:radial-gradient(#9C6B3E 1px,transparent 1.5px) 0 0/8px 8px,#C8955F"></span><b>C · Corkboard</b><small>Polaroids pinned up, tape, sticky notes, marker.</small></a>
+  <a href="/designs/editorial/"><span class="sw" style="background:linear-gradient(#F1EFEA 70%,#FF3B1F 70%); box-shadow:inset 0 0 0 1px #ccc"></span><b>D · Index</b><small>Huge type, one red, magazine contents page.</small></a>
+</div></div></body></html>

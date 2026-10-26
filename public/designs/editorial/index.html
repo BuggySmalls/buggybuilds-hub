@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Buggy Builds · Index</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Index: a Swiss-style magazine contents page. Huge type, one red, numbered rows; hovering a row floats its picture beside the cursor. */
+:root{--paper:#F1EFEA; --ink:#111111; --muted:#77736B; --line:#111111; --red:#FF3B1F; color-scheme:light}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--paper:#121211; --ink:#F1EFEA; --muted:#8F8A80; --line:#F1EFEA; color-scheme:dark} }
+:root[data-theme="dark"]{--paper:#121211; --ink:#F1EFEA; --muted:#8F8A80; --line:#F1EFEA; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font:500 16px/1.4 'Inter Tight', system-ui, sans-serif; min-height:100vh}
+.wrap{max-width:1240px; margin:0 auto; padding:20px 20px 40px}
+.top{display:grid; grid-template-columns:repeat(4,1fr); gap:20px; font:500 12px/1.4 'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:.04em; padding-bottom:14px; border-bottom:2px solid var(--line)}
+.top span:last-child{text-align:right}
+.top b{color:var(--red); font-weight:500}
+h1{font:900 clamp(64px,17vw,250px)/.82 'Inter Tight', sans-serif; letter-spacing:-.065em; margin:26px 0 10px; margin-left:-.05em}
+h1 i{font-style:normal; color:var(--red)}
+.intro{display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:18px 0 40px; border-bottom:2px solid var(--line)}
+.intro p{margin:0; font-size:clamp(20px,2.3vw,28px); line-height:1.15; letter-spacing:-.02em; max-width:22ch}
+.intro .m{font:500 12px/1.6 'JetBrains Mono', monospace; text-transform:uppercase; color:var(--muted); align-self:end; text-align:right}
+.list{list-style:none; margin:0; padding:0}
+.row{display:grid; grid-template-columns:80px 1fr 200px 140px 40px; align-items:baseline; gap:20px; padding:22px 0 20px; border-bottom:1px solid var(--line); text-decoration:none; color:inherit; position:relative}
+.row .n{font:500 13px 'JetBrains Mono', monospace; color:var(--muted)}
+.row .t{font:700 clamp(36px,6.4vw,92px)/.9 'Inter Tight', sans-serif; letter-spacing:-.045em; transition:transform .35s cubic-bezier(.2,.8,.2,1), color .2s}
+.row .k,.row .s{font:500 12px/1.5 'JetBrains Mono', monospace; text-transform:uppercase; color:var(--muted)}
+.row .s b{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--red); margin-right:6px; vertical-align:1px}
+.row .a{font:700 34px/1 'Inter Tight'; text-align:right; transition:transform .3s}
+a.row:hover .t, a.row:focus-visible .t{transform:translateX(18px); color:var(--red)}
+a.row:hover .a, a.row:focus-visible .a{transform:translate(6px,-6px) rotate(-45deg); color:var(--red)}
+a.row:focus-visible{outline:none}
+.row.soon .t{color:transparent; -webkit-text-stroke:1.5px var(--ink)}
+.row.soon .s b{background:var(--muted)}
+.peek{position:fixed; left:0; top:0; width:300px; aspect-ratio:4/3; pointer-events:none; opacity:0; transform:translate(-50%,-50%) scale(.85) rotate(-3deg); transition:opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1); z-index:10; box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.peek.on{opacity:1; transform:translate(-50%,-50%) scale(1) rotate(-3deg)}
+.peek svg{width:100%; height:100%; display:block}
+.thumb{display:none}
+.foot{display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:18px; font:500 12px/1.5 'JetBrains Mono', monospace; text-transform:uppercase; color:var(--muted)}
+.foot span:last-child{text-align:right}
+.back{position:fixed; right:12px; bottom:12px; z-index:60; font:700 12px system-ui, sans-serif; background:var(--ink); color:var(--paper); padding:7px 11px; border-radius:999px; text-decoration:none}
+@media (max-width:760px){
+  .top{grid-template-columns:1fr 1fr} .top span:nth-child(3),.top span:nth-child(2){display:none}
+  .intro{grid-template-columns:1fr} .intro .m{text-align:left}
+  .row{grid-template-columns:44px 1fr 30px; gap:10px; padding:18px 0} .row .k,.row .s{display:none} .row .a{font-size:26px}
+  .thumb{display:block; grid-column:2 / 4; aspect-ratio:16/9; margin-top:12px} .thumb svg{width:100%; height:100%; display:block}
+  .peek{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span>Buggy Builds</span><span>Index of works</span><span>Rhode Island, USA</span><span>Vol. <b>01</b> / <span id="yr">2026</span></span></div>
+  <h1>Buggy<br>Builds<i>.</i></h1>
+  <div class="intro"><p>Games, tools and side projects, made for me and my friends.</p><span class="m">Two live · one in the works<br>Updated weekly-ish</span></div>
+  <ol class="list">
+    <li><a class="row" href="/fretfire/" data-peek="fret"><span class="n">01</span><span class="t">Fretfire</span><span class="k">Rhythm game<br>Browser · keys / touch</span><span class="s"><b></b>Test build</span><span class="a">↗</span><span class="thumb" data-art="fret"></span></a></li>
+    <li><a class="row" href="https://cerealbowlers.org" data-peek="bowl"><span class="n">02</span><span class="t">Cereal Bowlers</span><span class="k">League site<br>cerealbowlers.org</span><span class="s"><b></b>Live, Wednesdays</span><span class="a">↗</span><span class="thumb" data-art="bowl"></span></a></li>
+    <li><div class="row soon"><span class="n">03</span><span class="t">Coming soon</span><span class="k">Next build<br>On the bench</span><span class="s"><b></b>In progress</span><span class="a">·</span></div></li>
+  </ol>
+  <div class="foot"><span>© Buggy Builds</span><span>Set in Inter Tight &amp; JetBrains Mono</span></div>
+</div>
+<div class="peek" id="peek"></div>
+<a class="back" href="/">← All designs</a>
+<script>
+const ART={
+  fret:`<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#FF3B1F"/><g fill="#111"><rect x="60" width="44" height="225" opacity=".12"/><rect x="104" width="44" height="225" opacity=".2"/><rect x="148" width="44" height="225" opacity=".12"/><rect x="192" width="44" height="225" opacity=".2"/></g><g fill="#fff"><rect x="66" y="30" width="32" height="12" rx="6"/><rect x="154" y="80" width="32" height="12" rx="6"/><rect x="110" y="120" width="32" height="12" rx="6"/><rect x="198" y="50" width="32" height="12" rx="6"/></g><g fill="none" stroke="#111" stroke-width="5"><circle cx="82" cy="188" r="14"/><circle cx="126" cy="188" r="14"/><circle cx="170" cy="188" r="14"/><circle cx="214" cy="188" r="14"/></g></svg>`,
+  bowl:`<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#111"/><circle cx="150" cy="126" r="70" fill="#FF3B1F"/><g fill="#111"><circle cx="128" cy="104" r="10"/><circle cx="160" cy="98" r="10"/><circle cx="146" cy="128" r="10"/></g><g fill="#F1EFEA"><rect x="40" y="40" width="14" height="40" rx="7"/><rect x="60" y="40" width="14" height="40" rx="7"/><rect x="50" y="26" width="14" height="40" rx="7"/></g></svg>`
+};
+document.querySelectorAll('.thumb').forEach(t=>t.innerHTML=ART[t.dataset.art]);
+const peek=document.getElementById('peek'); let tx=0,ty=0,x=0,y=0;
+document.querySelectorAll('[data-peek]').forEach(r=>{ r.addEventListener('mouseenter',()=>{ peek.innerHTML=ART[r.dataset.peek]; peek.classList.add('on'); }); r.addEventListener('mouseleave',()=>peek.classList.remove('on')); });
+addEventListener('mousemove',e=>{ tx=e.clientX+170; ty=e.clientY; });
+(function f(){ x+=(tx-x)*.18; y+=(ty-y)*.18; peek.style.left=Math.min(innerWidth-160,x)+'px'; peek.style.top=y+'px'; requestAnimationFrame(f); })();
+try{document.getElementById('yr').textContent=new Date().getFullYear()}catch(e){}
+</script>
+</body>
+</html>
