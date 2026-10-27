@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>BuGGy Builds</title>
-<meta name="description" content="BuGGy Builds: games, tools and side projects, made in Rhode Island.">
+<meta name="description" content="BuGGy Builds">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;900&family=JetBrains+Mono:wght@500&display=swap">
@@ -29,9 +29,9 @@ body{background:var(--paper); color:var(--ink); font:500 16px/1.4 'Inter Tight',
 @keyframes pulse{50%{opacity:.25}}
 h1{font:900 clamp(64px,17vw,250px)/.82 'Inter Tight', sans-serif; letter-spacing:-.065em; margin:26px 0 10px; margin-left:-.05em}
 h1 i{font-style:normal; color:var(--red)}
-.intro{display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:18px 0 40px; border-bottom:2px solid var(--line)}
+.intro{display:grid; grid-template-columns:1fr; gap:20px; padding:18px 0 40px; border-bottom:2px solid var(--line)}
 .intro p{margin:0; font-size:clamp(20px,2.3vw,28px); line-height:1.15; letter-spacing:-.02em; max-width:22ch}
-.intro .mono{color:var(--muted); align-self:end; text-align:right}
+.intro .mono{color:var(--muted); text-align:left}
 .sec{display:grid; grid-template-columns:80px 1fr; gap:20px; padding:12px 0; border-bottom:1px solid var(--line); color:var(--muted)}
 .sec b{color:var(--ink); font-weight:500}
 .list{list-style:none; margin:0; padding:0}
@@ -96,9 +96,9 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 </head>
 <body>
 <div class="wrap" id="top">
-  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span><a href="#index">Index of works</a></span><span>Rhode Island, USA</span><span class="v"><a href="#changelog" title="See what changed"><span class="dot"></span>Version <b id="ver">1.00</b></a></span></header>
+  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span><a href="#index">Index of works</a></span><span>Last updated <span id="updatedTop">Oct 26, 2026</span></span><span class="v"><a href="#changelog" title="See what changed"><span class="dot"></span>Version <b id="ver">1.00</b></a></span></header>
   <h1>BuGGy<br>Builds<i>.</i></h1>
-  <div class="intro"><p>Games, tools and side projects, made for me and my friends.</p><span class="mono">Two live · one in the works<br>Last updated <span id="updated">Oct 26, 2026</span></span></div>
+  <div class="intro"><span class="mono">Two live · one in the works</span></div>
 
   <div class="sec mono" id="index"><span>§ 1</span><span><b>Index of works</b> · hover for a look, tap to open</span></div>
   <ol class="list">
@@ -114,10 +114,8 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
       <h2>What's new<small id="verSmall">v1.00</small></h2>
       <ol class="log" id="log"></ol>
     </section>
-    <section class="col about" id="about"><div class="sec mono" style="border:0; padding:0; grid-template-columns:1fr"><span>§ 3 · About</span></div>
-      <h2>About</h2>
-      <p>BuGGy Builds is where I put the things I make for fun: games to play with friends, sites for the stuff we do together, and whatever I'm tinkering with next.</p>
-      <p style="color:var(--muted)">Built by Nick in Rhode Island. Every update bumps the version in the top corner.</p>
+    <section class="col about" id="about"><div class="sec mono" style="border:0; padding:0; grid-template-columns:1fr"><span>§ 3 · At a glance</span></div>
+      <h2>By the numbers</h2>
       <div class="facts mono"><div>Live projects<b>02</b></div><div>On the bench<b>01</b></div><div>Version<b id="verFact">1.00</b></div><div>Since<b>2026</b></div></div>
     </section>
   </div>
@@ -131,6 +129,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 /* Changelog: newest first. The top entry sets the version shown in the corner.
    Every update to the site adds a new entry here and bumps the version by .01 (v1.01, v1.02, ...). */
 const LOG = [
+  { v: '1.01', date: '2026-10-27', items: ['Trimmed the wording: no more tagline or about blurb, just the projects.'] },
   { v: '1.00', date: '2026-10-26', items: ['New home page: the Index.', 'Fretfire and Cereal Bowlers on the board, plus one spot for what’s next.', 'Version tracking starts here.'] },
 ];
 
@@ -138,7 +137,7 @@ const fmt = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month:
 const cur = LOG[0];
 for (const id of ['ver', 'verFact']) document.getElementById(id).textContent = cur.v;
 document.getElementById('verSmall').textContent = 'v' + cur.v; document.getElementById('footVer').textContent = 'v' + cur.v;
-document.getElementById('updated').textContent = fmt(cur.date);
+document.getElementById('updatedTop').textContent = fmt(cur.date);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 document.getElementById('log').innerHTML = LOG.map(e => `<li><span class="ver">v${esc(e.v)}</span><div><div class="when mono">${fmt(e.date)}</div><ul>${e.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div></li>`).join('');
 
