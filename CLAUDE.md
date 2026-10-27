@@ -8,6 +8,7 @@ Nick's home page for his side projects. Nick asks for changes by chatting with C
 - Version tracking (Nick, Oct 26 2026): the `LOG` array at the bottom of `public/index.html` is the changelog; its first entry sets the version shown top right, in the about facts and in the footer. **Every update to the site adds a new entry at the top and bumps the version by .01** (1.00 → 1.01 → 1.02 …), with the date and a few plain lines on what changed.
 - Projects on the index: Fretfire (`/fretfire/`), Cereal Bowlers (https://cerealbowlers.org), and one "Coming soon" row. Smiski Generator abandoned for now (last version in git history, commit b191a7b).
 - `public/fretfire/index.html` — Fretfire, Nick's Guitar Hero-style browser game. Self-contained single file.
+- Fretfire song library (Oct 27 2026): `public/fretfire/songs/songs.json` lists MP3s in that folder (format in `songs/README.md`). Charts are built in the browser: band-split onset detection → tempo + phase search → notes snapped to the beat grid, deterministic per song+difficulty. When Nick sends audio, convert with ffmpeg to MP3 ~160 kbps, add the file + manifest entry, and spot-check the detected tempo (fix with `bpm` in the manifest). Spotify/Apple Music/Pandora can't feed the game (DRM, no raw audio).
 - `public/404.html` (same Index look), `public/icon.svg`, `public/_redirects` (old /smiski links go home), `wrangler.jsonc` (Worker name `buggybuilds-hub` — don't rename it).
 
 ## Rules

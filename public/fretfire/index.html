@@ -53,6 +53,7 @@ canvas{width:100%; height:100%; display:block; touch-action:none; user-select:no
 .seg button[aria-pressed="true"]{background:var(--fg); color:var(--stage)}
 .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center}
 .go{font:400 1.1rem var(--display); background:var(--accent); color:#1b1200; border:0; border-radius:12px; padding:14px 34px; cursor:pointer; box-shadow:0 5px 0 #b87700; letter-spacing:.04em}
+.go:disabled{opacity:.45; cursor:wait}
 .go:active{transform:translateY(3px); box-shadow:0 2px 0 #b87700}
 .ghost{font:600 .9rem var(--body); color:var(--fg); background:none; border:2px solid var(--line); border-radius:10px; padding:10px 14px; cursor:pointer}
 button:focus-visible{outline:3px solid var(--l3); outline-offset:2px}
@@ -280,16 +281,49 @@ const songsEl = $('songs');
 SONGS.forEach((s,i) => {
   const b = document.createElement('button'); b.id = 'song-' + s.id; b.setAttribute('aria-pressed', i===0);
   b.innerHTML = `<strong>${s.name}</strong><span>${s.blurb}</span>`;
-  b.addEventListener('click', () => { song = s; songsEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); $('customOpts').hidden = true; });
+  b.addEventListener('click', () => { song = s; pick(b); $('customOpts').hidden = true; $('startBtn').disabled = false; });
   songsEl.appendChild(b);
 });
+
+// decode helper (old Safari only has the callback form)
+function decode(data){ return new Promise((res, rej) => { const p = ac.decodeAudioData(data, res, rej); if(p && p.then) p.then(res, rej); }); }
+function pick(b){ songsEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+function hashStr(str){ let h = 2166136261; for(const c of str){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+
+// song library: songs/songs.json lists MP3s that live on the site
+const libEl = document.createElement('div'); libEl.className = 'songs'; libEl.id = 'library';
+fetch('songs/songs.json', {cache:'no-cache'}).then(r => r.ok ? r.json() : {songs:[]}).then(m => {
+  const list = (m && m.songs) || [];
+  list.forEach(e => {
+    const sg = { id:'lib-' + e.id, name:e.title, artist:e.artist || '', custom:true, lib:true, url:'songs/' + e.file,
+      startAt: parseTime(e.start || 0), length: +e.length || 0, nudge: (+e.offsetMs || 0)/1000, bpmHint: +e.bpm || 0, buffer:null, bpm:120, beatPhase:0 };
+    const b = document.createElement('button'); b.id = 'song-' + sg.id; b.setAttribute('aria-pressed', false);
+    b.innerHTML = `<strong></strong><span></span>`;
+    b.querySelector('strong').textContent = sg.name;
+    const desc = () => [sg.artist, sg.length ? fmtTime(sg.length) : sg.buffer ? fmtTime(sg.buffer.duration - sg.startAt) : ''].filter(Boolean).join(' · ');
+    b.querySelector('span').textContent = desc();
+    b.addEventListener('click', async () => {
+      song = sg; pick(b); $('customOpts').hidden = true;
+      if(sg.buffer || sg.loading) return;
+      initAudio(); sg.loading = true; b.querySelector('span').textContent = 'Loading…'; $('startBtn').disabled = true;
+      try { sg.buffer = await decode(await (await fetch(sg.url)).arrayBuffer()); b.querySelector('span').textContent = desc(); }
+      catch(err){ b.querySelector('span').textContent = "Couldn't load this song."; }
+      sg.loading = false; if(song === sg) $('startBtn').disabled = !sg.buffer;
+    });
+    libEl.appendChild(b);
+  });
+  if(list.length){
+    const songLabel = songsEl.previousElementSibling; songLabel.textContent = 'Song library';
+    songLabel.after(libEl); libEl.after(Object.assign(document.createElement('div'), {className:'label', textContent:'More songs'}));
+  }
+}).catch(() => {});
 
 // your own song: decoded on this device only
 let customSong = null, curSrc = null;
 const cb = document.createElement('button'); cb.id = 'song-custom'; cb.setAttribute('aria-pressed', false);
-cb.innerHTML = '<strong>Your own song</strong><span>Pick an MP3 from your device. The game builds a chart from its beats.</span>';
+cb.innerHTML = '<strong>Your own song</strong><span>Pick an MP3 from your device. The game finds the beat and builds a chart.</span>';
 cb.addEventListener('click', () => {
-  if(customSong){ song = customSong; songsEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === cb)); $('customOpts').hidden = false; }
+  if(customSong){ song = customSong; pick(cb); $('customOpts').hidden = false; $('startBtn').disabled = false; }
   $('fileIn').click();
 });
 songsEl.appendChild(cb);
@@ -298,12 +332,10 @@ $('fileIn').addEventListener('change', async e => {
   initAudio();
   cb.querySelector('span').textContent = 'Loading ' + file.name + '…';
   try {
-    const data = await file.arrayBuffer();
-    const buffer = await new Promise((res, rej) => { const p = ac.decodeAudioData(data, res, rej); if(p && p.then) p.then(res, rej); });
+    const buffer = await decode(await file.arrayBuffer());
     const name = file.name.replace(/\.[^.]+$/, '');
-    customSong = { id:'custom-' + name.toLowerCase().replace(/\W+/g,'-').slice(0,40), name, custom:true, buffer, bpm:120 };
-    song = customSong;
-    songsEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === cb));
+    customSong = { id:'custom-' + name.toLowerCase().replace(/\W+/g,'-').slice(0,40), name, custom:true, buffer, bpm:120, beatPhase:0, nudge:0 };
+    song = customSong; pick(cb); $('startBtn').disabled = false;
     cb.querySelector('strong').textContent = name;
     cb.querySelector('span').textContent = fmtTime(buffer.duration) + ' long · tap to pick a different file';
     $('customOpts').hidden = false;
@@ -315,35 +347,116 @@ $('fileIn').addEventListener('change', async e => {
 function fmtTime(s){ s = Math.round(s); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
 function parseTime(v){ const p = String(v).trim().split(':').map(Number); if(p.some(isNaN)) return 0; return p.length > 1 ? p[0]*60 + p[1] : p[0]; }
 
-// onset detection: energy jumps become notes, brightness picks the lane
-function chartFromAudio(buf, offset, dur, diff){
+/* ---------- charting real audio ----------
+   1. Split the sound into low / mid / high bands and measure how sharply each one jumps (onsets).
+   2. Find the tempo and where the beats fall.
+   3. Snap notes to that beat grid, picking the strongest hits in each bar (more on harder levels).
+   4. Lanes follow the sound: bass hits lean left, bright hits lean right.
+   Same song + same difficulty always gives the same chart, so scores are comparable. */
+function analyze(buf, offset, dur){
   const sr = buf.sampleRate, a = buf.getChannelData(0), b = buf.numberOfChannels > 1 ? buf.getChannelData(1) : null;
-  const hop = 512, s0 = Math.floor(offset*sr), s1 = Math.min(a.length, Math.floor((offset+dur)*sr));
-  const E = [], Z = [];
-  for(let i=s0;i+hop<=s1;i+=hop){
-    let e = 0, z = 0, prev = 0;
-    for(let j=i;j<i+hop;j++){ const x = b ? (a[j]+b[j])*.5 : a[j]; e += x*x; if((x >= 0) !== (prev >= 0)) z++; prev = x; }
-    E.push(Math.sqrt(e/hop)); Z.push(z/hop);
+  const hop = 512, frame = hop/sr, s0 = Math.floor(offset*sr), s1 = Math.min(a.length, Math.floor((offset+dur)*sr));
+  const cLo = Math.exp(-2*Math.PI*200/sr), cHi = Math.exp(-2*Math.PI*2500/sr);
+  let lp1 = 0, lp2 = 0;
+  for(let j=Math.max(0, s0-4096); j<s0; j++){ const x = b ? (a[j]+b[j])*.5 : a[j]; lp1 = x + cLo*(lp1-x); lp2 = x + cHi*(lp2-x); }
+  const L = [], M = [], H = [];
+  for(let i=s0; i+hop<=s1; i+=hop){
+    let el = 0, em = 0, eh = 0;
+    for(let j=i; j<i+hop; j++){
+      const x = b ? (a[j]+b[j])*.5 : a[j];
+      lp1 = x + cLo*(lp1-x); lp2 = x + cHi*(lp2-x);
+      const lo = lp1, mid = lp2 - lp1, hi = x - lp2;
+      el += lo*lo; em += mid*mid; eh += hi*hi;
+    }
+    L.push(Math.log1p(300*Math.sqrt(el/hop))); M.push(Math.log1p(300*Math.sqrt(em/hop))); H.push(Math.log1p(300*Math.sqrt(eh/hop)));
   }
-  const F = E.map((e,i) => i ? Math.max(0, e - E[i-1]) : 0);
-  const pre = [0]; for(const f of F) pre.push(pre[pre.length-1] + f);
-  const win = Math.round(.5*sr/hop), frame = hop/sr;
-  const minGap = [.42,.26,.16][diff], k = [1.9,1.6,1.4][diff];
-  const picks = []; let last = -9;
-  for(let i=1;i<F.length-1;i++){
-    const lo = Math.max(0,i-win), hi = Math.min(F.length,i+win+1), mean = (pre[hi]-pre[lo])/(hi-lo);
-    const t = i*frame;
-    if(F[i] > mean*k + 1e-4 && F[i] >= F[i-1] && F[i] >= F[i+1] && t - last >= minGap){ picks.push(i); last = t; }
+  const n = L.length, fl = new Float32Array(n), fm = new Float32Array(n), fh = new Float32Array(n), flux = new Float32Array(n), loud = new Float32Array(n);
+  for(let i=1;i<n;i++){ fl[i] = Math.max(0, L[i]-L[i-1]); fm[i] = Math.max(0, M[i]-M[i-1]); fh[i] = Math.max(0, H[i]-H[i-1]); flux[i] = fl[i]*1.2 + fm[i] + fh[i]*.8; loud[i] = L[i] + M[i] + H[i]; }
+  // remove the slow-moving part so only sharp hits stand out
+  const w = Math.max(1, Math.round(.25/frame)), pre = new Float64Array(n+1);
+  for(let i=0;i<n;i++) pre[i+1] = pre[i] + flux[i];
+  const on = new Float32Array(n);
+  for(let i=0;i<n;i++){ const lo = Math.max(0,i-w), hi = Math.min(n,i+w+1); on[i] = Math.max(0, flux[i] - (pre[hi]-pre[lo])/(hi-lo)); }
+  return { frame, n, on, fl, fm, fh, loud };
+}
+function findTempo(A, hint){
+  const { on, frame, n } = A;
+  const at = x => { const i = Math.floor(x), f = x - i; return i+1 < n ? on[i]*(1-f) + on[i+1]*f : 0; };
+  let best = -1, bpm = 120, total = 0, count = 0;
+  const lo = hint ? hint*.97 : 70, hi = hint ? hint*1.03 : 185, step = hint ? .1 : .5;
+  for(let t=lo; t<=hi; t+=step){
+    const lag = 60/t/frame; let s = 0;
+    for(let i=0; i+2*lag<n; i+=2) s += on[i]*(at(i+lag) + .5*at(i+2*lag));
+    const w = hint ? 1 : Math.exp(-.5*Math.pow(Math.log2(t/120)/.9, 2)); // nudge toward everyday tempos
+    const sc = s*w; total += sc; count++;
+    if(sc > best){ best = sc; bpm = t; }
   }
-  const zs = picks.map(i => Z[i]).sort((x,y) => x-y), q = f => zs[Math.floor(f*(zs.length-1))] ?? 0;
-  const cuts = [q(.25), q(.5), q(.75)];
-  let prevLane = -1;
-  return picks.map(i => {
-    let lane = cuts.filter(c => Z[i] > c).length;
-    if(lane === prevLane && diff < 2 && Math.random() < .35) lane = (lane + (lane < 2 ? 1 : -1));
-    prevLane = lane;
-    return { t: i*frame, lane, midi:null, judged:false };
+  while(bpm < 80) bpm *= 2; while(bpm > 170) bpm /= 2;
+  // refine: slide a beat grid across the whole track and keep the tempo + start that lands on the most hits
+  const sm = new Float32Array(n); for(let i=0;i<n;i++){ let v = 0, wsum = 0; for(let d=-2; d<=2; d++){ const j = i+d; if(j<0||j>=n) continue; const wt = 3-Math.abs(d); v += on[j]*wt; wsum += wt; } sm[i] = v/wsum; }
+  const sat = x => { const i = Math.floor(x), f = x - i; return i+1 < n && i >= 0 ? sm[i]*(1-f) + sm[i+1]*f : 0; };
+  const span = n*frame; let fine = bpm, phase = 0, fb = -1;
+  for(let t=bpm*.97; t<=bpm*1.03; t+=.02){
+    const P = 60/t;
+    for(let ph=0; ph<P; ph+=frame/2){ let s2 = 0; for(let x=ph; x<span; x+=P) s2 += sat(x/frame); if(s2 > fb){ fb = s2; fine = t; phase = ph; } }
+  }
+  return { bpm: fine, phase, conf: count ? best/(total/count) : 0 };
+}
+function chartFromAudio(buf, offset, dur, diff, seedKey, hint){
+  const A = analyze(buf, offset, dur), { on, frame, n, fl, fm, fh, loud } = A;
+  const T = findTempo(A, hint), beat = 60/T.bpm, r = rng(hashStr(seedKey) + diff*31);
+  const sub = [1,2,4][diff], step = beat/sub, maxPerBar = [3.2, 6, 10][diff];
+  const peakAt = t => { let m = 0, k = -1; const c = Math.round(t/frame), rad = Math.round(.045/frame);
+    for(let i=Math.max(0,c-rad); i<=Math.min(n-1,c+rad); i++) if(on[i] > m){ m = on[i]; k = i; } return [m, k]; };
+  const slots = [];
+  for(let t=T.phase, idx=0; t < dur - .15; t+=step, idx++){
+    if(t < .6) continue;                                  // give players a breath at the start
+    const [m, k] = peakAt(t); if(k < 0) continue;
+    const pos = idx % (4*sub), onBeat = pos % sub === 0, eighth = sub === 4 ? pos % 2 === 0 : onBeat;
+    slots.push({ t, k, s: m * (pos === 0 ? 1.35 : onBeat ? 1.2 : eighth ? 1.05 : .9), bar: Math.floor(idx/(4*sub)) });
+  }
+  const sorted = slots.map(x => x.s).filter(x => x > 0).sort((x,y) => x-y);
+  const gate = sorted.length ? sorted[Math.floor(sorted.length*.3)] : 0;
+  const lsort = Array.from(loud).sort((x,y) => x-y), lmed = lsort[Math.floor(lsort.length*.5)] || 1;
+  const bars = new Map(); slots.forEach(x => { if(!bars.has(x.bar)) bars.set(x.bar, []); bars.get(x.bar).push(x); });
+  const chosen = [];
+  for(const list of bars.values()){
+    let lsum = 0; list.forEach(x => lsum += loud[x.k]);
+    const scale = Math.max(.35, Math.min(1.15, (lsum/list.length)/lmed));
+    const want = Math.round(maxPerBar*scale);
+    list.filter(x => x.s > gate).sort((x,y) => y.s - x.s).slice(0, want).forEach(x => chosen.push(x));
+  }
+  chosen.sort((x,y) => x.t - y.t);
+  // lanes from tone: share of low vs high energy at the hit, spread evenly with quartile cuts
+  const tone = chosen.map(x => { const lo = fl[x.k]*1.3, mi = fm[x.k], hi = fh[x.k], tot = lo+mi+hi || 1; return (mi*1.5 + hi*3)/tot; });
+  const ts = [...tone].sort((x,y) => x-y), q = f => ts[Math.floor(f*(ts.length-1))] ?? 0, cuts = [q(.25), q(.5), q(.75)];
+  const strong = [...chosen].map(x => x.s).sort((x,y) => y-x)[Math.floor(chosen.length*[0, .03, .1][diff])] ?? Infinity;
+  const notes = []; let prev = -1, run = 0;
+  chosen.forEach((x, i) => {
+    let lane = cuts.filter(c => tone[i] > c).length;
+    if(lane === prev){ run++; if(run >= (diff === 2 ? 3 : 2) || r() < .3){ lane = lane + (lane < 2 ? 1 : -1); run = 0; } } else run = 0;
+    prev = lane;
+    const t = x.t + (song.nudge || 0);
+    notes.push({ t, lane, midi:null, judged:false });
+    if(diff > 0 && x.s >= strong && x.s > 0) notes.push({ t, lane:(lane+2)%4, midi:null, judged:false });
   });
+  // a song with no steady beat: fall back to raw hits so it still plays
+  if(T.conf < 1.15 || notes.length < dur*.3) return { notes: rawHits(A, diff, r), bpm: 0, phase: 0 };
+  return { notes, bpm: T.bpm, phase: T.phase + (song.nudge || 0) };
+}
+function rawHits(A, diff, r){
+  const { on, frame, n, fl, fh } = A, minGap = [.42,.26,.16][diff], k = [1.9,1.6,1.4][diff], win = Math.round(.5/frame);
+  const pre = [0]; for(let i=0;i<n;i++) pre.push(pre[i] + on[i]);
+  const out = []; let last = -9, prev = -1;
+  for(let i=1;i<n-1;i++){
+    const lo = Math.max(0,i-win), hi = Math.min(n,i+win+1), mean = (pre[hi]-pre[lo])/(hi-lo), t = i*frame;
+    if(t > .6 && on[i] > mean*k + 1e-4 && on[i] >= on[i-1] && on[i] >= on[i+1] && t - last >= minGap){
+      let lane = fh[i] > fl[i]*1.4 ? 3 : fh[i] > fl[i] ? 2 : fl[i] > fh[i]*1.4 ? 0 : 1;
+      if(lane === prev && r() < .4) lane = (lane + 1) % 4; prev = lane;
+      out.push({ t, lane, midi:null, judged:false }); last = t;
+    }
+  }
+  return out;
 }
 
 function resize(){
@@ -361,11 +474,13 @@ function startGame(){
   clearInterval(schedTimer);
   score=0; combo=0; maxCombo=0; strays=0; counts={perfect:0,good:0,ok:0,miss:0}; sparks=[]; judgeText=null; head = 0;
   if(song.custom){
-    let off = parseTime($('startAt').value);
+    if(!song.buffer) return;
+    let off = song.lib ? song.startAt : parseTime($('startAt').value);
     if(off < 0 || off >= song.buffer.duration - 5) off = 0;
-    const room = song.buffer.duration - off, len = +$('lenSel').value || room;
+    const room = song.buffer.duration - off, len = (song.lib ? song.length : +$('lenSel').value) || room;
     const dur = Math.max(5, Math.min(len, room));
-    notes = chartFromAudio(song.buffer, off, dur, diff); songLen = dur;
+    const c = chartFromAudio(song.buffer, off, dur, diff, song.id + '@' + off + '+' + dur, song.bpmHint);
+    notes = c.notes; song.bpm = c.bpm || 120; song.beatPhase = c.phase; song.hasGrid = !!c.bpm; songLen = dur;
     start = ac.currentTime + 2.2;
     curSrc = ac.createBufferSource(); curSrc.buffer = song.buffer; curSrc.connect(out); curSrc.start(start, off, dur);
   } else {
@@ -477,10 +592,11 @@ function frame(){
     g2.fillStyle = grd; g2.fillRect(l*lw, 0, lw, H);
     if(l){ g2.fillStyle = '#2d2655'; g2.fillRect(l*lw - dpr*.5, 0, dpr, H); }
   }
-  if(state === 'play' && !song.custom){
-    const b0 = Math.ceil((now - .2)/beat), b1 = Math.floor((now + travel)/beat);
-    for(let b=b0;b<=b1;b++){
-      const y = yOf(b*beat); if(y > H) continue;
+  if(state === 'play' && (!song.custom || song.hasGrid)){
+    const ph = song.custom ? song.beatPhase : 0;
+    const b0 = Math.ceil((now - ph - .2)/beat), b1 = Math.floor((now - ph + travel)/beat);
+    for(let b=Math.max(0,b0);b<=b1;b++){
+      const y = yOf(ph + b*beat); if(y > H) continue;
       g2.fillStyle = b%4===0 ? 'rgba(241,236,255,.22)' : 'rgba(241,236,255,.07)';
       g2.fillRect(0, y - dpr*(b%4===0?1:.5), W, dpr*(b%4===0?2:1));
     }
