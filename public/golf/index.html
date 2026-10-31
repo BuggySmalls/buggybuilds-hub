@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buggy vs N8 · The 180 · BuGGy Builds</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* The 180: a 180-hole golf match played out as a party board game.
+   Scores live in scores.json (plus any holes added on this device). Every hole moves the paper pieces. */
+:root{
+  --sky1:#7fd3ff; --sky2:#c9f0ff; --ink:#1d2340; --paper:#fffaf0;
+  --blue:#2f6bff; --red:#ff4141; --green:#2fbf55; --gold:#ffc61a; --gold2:#ff9d00;
+  --buggy:#ff4141; --n8:#2f6bff; --card:#ffffff;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:800 15px/1.35 'Nunito',system-ui,sans-serif; color:var(--ink); min-height:100vh; overflow-x:hidden;
+  background:radial-gradient(circle at 20% 0%, #fff8 0 8%, transparent 9%), radial-gradient(circle at 85% 6%, #fff7 0 6%, transparent 7%), linear-gradient(180deg,var(--sky1),var(--sky2) 70%);}
+a{color:inherit}
+.wrap{max-width:1180px; margin:0 auto; padding:14px 16px 60px}
+.top{display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:13px}
+.top a{text-decoration:none; background:#fff; border:3px solid var(--ink); border-radius:999px; padding:5px 12px; box-shadow:0 3px 0 var(--ink)}
+.top a:hover{transform:translateY(1px); box-shadow:0 2px 0 var(--ink)}
+.chip{background:var(--ink); color:#fff; border-radius:999px; padding:5px 12px}
+
+h1{font:400 clamp(44px,9vw,104px)/.9 'Lilita One',sans-serif; text-align:center; margin:18px 0 4px; letter-spacing:.01em; color:#fff;
+  -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; text-shadow:0 6px 0 var(--ink)}
+h1 .b{color:var(--buggy)} h1 .n{color:var(--n8)} h1 .vs{font-size:.5em; vertical-align:.35em; color:var(--gold)}
+.sub{text-align:center; font:400 clamp(18px,3vw,26px) 'Lilita One'; margin:6px 0 18px; letter-spacing:.04em}
+.sub span{background:var(--gold); border:3px solid var(--ink); border-radius:12px; padding:2px 12px; box-shadow:0 4px 0 var(--ink); display:inline-block; transform:rotate(-2deg)}
+
+/* player cards */
+.players{display:grid; grid-template-columns:1fr auto 1fr; gap:14px; align-items:stretch}
+.pc{background:var(--card); border:4px solid var(--ink); border-radius:22px; box-shadow:0 6px 0 var(--ink); padding:12px 14px; display:grid; grid-template-columns:86px 1fr; gap:10px; align-items:center; position:relative}
+.pc.lead::after{content:'1st'; position:absolute; top:-14px; right:12px; font:400 18px 'Lilita One'; background:var(--gold); border:3px solid var(--ink); border-radius:10px; padding:0 8px; transform:rotate(6deg)}
+.pc.p2{grid-template-columns:1fr 86px; text-align:right} .pc.p2 .av{order:2}
+.pc.p2.lead::after{right:auto; left:12px; transform:rotate(-6deg)}
+.pc .av svg{width:86px; height:100px; display:block}
+.pc .nm{font:400 30px/1 'Lilita One'; letter-spacing:.02em}
+.pc.p1 .nm{color:var(--buggy)} .pc.p2 .nm{color:var(--n8)}
+.tally{display:flex; gap:8px; margin-top:6px; flex-wrap:wrap} .pc.p2 .tally{justify-content:flex-end}
+.tk{display:inline-flex; align-items:center; gap:5px; font:400 22px/1 'Lilita One'; background:#f3f5ff; border:3px solid var(--ink); border-radius:999px; padding:3px 10px 3px 5px}
+.tk i{width:22px; height:22px; border-radius:50%; display:inline-grid; place-items:center; border:2px solid var(--ink); font-style:normal; font-size:13px}
+.tk.star i{background:var(--gold); clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); border:0; width:24px; height:24px}
+.tk.coin i{background:linear-gradient(var(--gold),var(--gold2))}
+.mini{font-size:12px; color:#56607f; margin-top:6px}
+.real{background:var(--ink); color:#fff; border-radius:22px; padding:12px 16px; text-align:center; display:flex; flex-direction:column; justify-content:center; min-width:180px; box-shadow:0 6px 0 #0006}
+.real small{font-size:11px; letter-spacing:.14em; text-transform:uppercase; opacity:.7}
+.real .big{font:400 30px/1.05 'Lilita One'; margin:4px 0}
+.real .big.b{color:#ff8a8a} .real .big.n{color:#8fb0ff}
+.real .holes{font-size:12px; opacity:.8}
+.bar{height:10px; background:#fff3; border-radius:99px; overflow:hidden; margin-top:6px}
+.bar b{display:block; height:100%; background:var(--gold); width:0; transition:width .4s}
+
+/* board */
+.boardbox{margin-top:18px; background:#3fae4a; border:5px solid var(--ink); border-radius:30px; box-shadow:0 8px 0 var(--ink); overflow:hidden; position:relative}
+#board{display:block; width:100%; height:auto; touch-action:pan-y}
+.space-lbl{font:400 15px 'Lilita One'; fill:#fff; pointer-events:none}
+.toast{position:absolute; left:50%; bottom:14px; transform:translate(-50%,20px); opacity:0; background:#fff; border:4px solid var(--ink); border-radius:16px; box-shadow:0 5px 0 var(--ink); padding:6px 14px; font:400 20px 'Lilita One'; white-space:nowrap; transition:.25s; pointer-events:none}
+.toast.on{opacity:1; transform:translate(-50%,0)}
+.empty{position:absolute; inset:auto 12px 12px 12px; background:#fff; border:4px solid var(--ink); border-radius:18px; padding:10px 14px; display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; box-shadow:0 5px 0 var(--ink)}
+.empty[hidden]{display:none}
+
+/* controls */
+.ctrl{display:flex; gap:10px; align-items:center; margin-top:16px; flex-wrap:wrap}
+.btn{font:400 18px 'Lilita One'; letter-spacing:.03em; background:#fff; color:var(--ink); border:4px solid var(--ink); border-radius:14px; box-shadow:0 5px 0 var(--ink); padding:6px 14px; cursor:pointer}
+.btn:active{transform:translateY(3px); box-shadow:0 2px 0 var(--ink)}
+.btn.go{background:var(--gold)} .btn.red{background:var(--red); color:#fff} .btn.blue{background:var(--blue); color:#fff}
+.btn:disabled{opacity:.45; cursor:default}
+.scrub{flex:1; min-width:180px; display:flex; flex-direction:column; gap:2px}
+.scrub label{font-size:12px; color:#33406a}
+input[type=range]{width:100%; accent-color:var(--ink); height:28px}
+
+/* panels */
+.grid{display:grid; grid-template-columns:1.25fr 1fr; gap:16px; margin-top:18px}
+.panel{background:var(--paper); border:4px solid var(--ink); border-radius:22px; box-shadow:0 6px 0 var(--ink); padding:14px 16px}
+.panel h2{font:400 24px/1 'Lilita One'; margin:0 0 10px; letter-spacing:.02em}
+.feed{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.feed li{display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:start; background:#fff; border:3px solid var(--ink); border-radius:14px; padding:8px 10px}
+.feed .dot{width:26px; height:26px; border-radius:50%; border:3px solid var(--ink); display:grid; place-items:center; color:#fff; font:400 13px 'Lilita One'}
+.feed .hd{font:400 18px 'Lilita One'}
+.feed p{margin:2px 0 0; font-weight:700; color:#3a4364}
+.rounds{display:grid; grid-template-columns:repeat(5,1fr); gap:8px}
+.rd{background:#fff; border:3px solid var(--ink); border-radius:12px; padding:6px 4px; text-align:center; font-size:12px}
+.rd b{display:block; font:400 18px 'Lilita One'}
+.rd.wb{background:#ffe0e0} .rd.wn{background:#dfe8ff} .rd.now{outline:3px dashed var(--gold2); outline-offset:2px}
+.rd.wb b{color:var(--buggy)} .rd.wn b{color:var(--n8)}
+.rules{margin:0; padding-left:0; list-style:none; display:grid; gap:7px; font-weight:700}
+.rules li{display:flex; gap:9px; align-items:center}
+.sw{flex:none; width:24px; height:24px; border-radius:50%; border:3px solid var(--ink); display:inline-grid; place-items:center; font:400 13px 'Lilita One'; color:#fff}
+table.moves{border-collapse:collapse; width:100%; font-size:13px; margin-top:8px} table.moves td{border-top:2px dashed #0002; padding:4px 2px} table.moves td:last-child{text-align:right; font-family:'Lilita One'; font-size:16px}
+
+/* add hole */
+details.add{margin-top:16px}
+details.add summary{cursor:pointer; list-style:none; display:inline-block}
+details.add summary::-webkit-details-marker{display:none}
+.form{display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-top:12px}
+.form label{display:flex; flex-direction:column; font-size:12px; gap:3px}
+.form input,.form select{font:400 22px 'Lilita One'; width:84px; padding:4px 8px; border:3px solid var(--ink); border-radius:10px; background:#fff; color:var(--ink)}
+.note{font-size:12px; color:#56607f; margin-top:8px}
+
+.foot{text-align:center; margin-top:30px; font-size:12px; color:#33406a}
+
+@media (max-width:820px){
+  .players{grid-template-columns:1fr 1fr}
+  .real{grid-column:1 / -1; order:3}
+  .pc,.pc.p2{grid-template-columns:1fr; text-align:center; padding:10px}
+  .pc.p2 .av{order:0}
+  .pc .av svg{margin:0 auto; width:70px; height:82px}
+  .tally,.pc.p2 .tally{justify-content:center}
+  .pc .nm{font-size:24px}
+  .tk{font-size:18px}
+  .grid{grid-template-columns:1fr}
+  h1{-webkit-text-stroke:2px var(--ink); text-shadow:0 4px 0 var(--ink)}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<!-- shared SVG bits: the paper-cutout filter and the two pieces -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="paper" x="-40%" y="-30%" width="180%" height="160%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="4.5" result="d"/>
+      <feFlood flood-color="#ffffff"/><feComposite in2="d" operator="in" result="w"/>
+      <feGaussianBlur in="d" stdDeviation="2" result="bl"/><feOffset in="bl" dx="3" dy="5" result="o"/>
+      <feFlood flood-color="#000" flood-opacity=".35"/><feComposite in2="o" operator="in" result="sh"/>
+      <feMerge><feMergeNode in="sh"/><feMergeNode in="w"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- a little golfer, feet at 0,0. Colours come from the use element (currentColor = shirt). -->
+    <g id="golfer">
+      <line x1="10" y1="-38" x2="24" y2="-2" stroke="#6b6f7a" stroke-width="3" stroke-linecap="round"/>
+      <path d="M21 -3 h9 a3 3 0 0 1 0 5 h-9z" fill="#3b3f4a"/>
+      <rect x="-10" y="-24" width="8" height="22" rx="3" fill="#2b3150"/>
+      <rect x="2" y="-24" width="8" height="22" rx="3" fill="#2b3150"/>
+      <ellipse cx="-6" cy="-1" rx="7" ry="3.5" fill="#fff" stroke="#1d2340" stroke-width="1.5"/>
+      <ellipse cx="6" cy="-1" rx="7" ry="3.5" fill="#fff" stroke="#1d2340" stroke-width="1.5"/>
+      <rect x="-14" y="-50" width="28" height="30" rx="9" fill="currentColor" stroke="#1d2340" stroke-width="2"/>
+      <path d="M-4 -50 l4 7 l4 -7" fill="#fff" stroke="#1d2340" stroke-width="1.5"/>
+      <rect x="8" y="-46" width="8" height="18" rx="4" fill="currentColor" stroke="#1d2340" stroke-width="2" transform="rotate(-25 12 -46)"/>
+      <circle cx="13" cy="-34" r="4" fill="#ffd2b0" stroke="#1d2340" stroke-width="1.5"/>
+      <circle cx="0" cy="-62" r="13" fill="#ffd2b0" stroke="#1d2340" stroke-width="2"/>
+      <circle cx="-4" cy="-62" r="1.8" fill="#1d2340"/><circle cx="5" cy="-62" r="1.8" fill="#1d2340"/>
+      <path d="M-4 -56 q4 4 8 0" fill="none" stroke="#1d2340" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M-13 -66 a13 12 0 0 1 26 0 z" fill="currentColor" stroke="#1d2340" stroke-width="2"/>
+      <path d="M8 -67 h14 a3 3 0 0 1 0 5 h-14z" fill="currentColor" stroke="#1d2340" stroke-width="2"/>
+      <circle cx="0" cy="-78" r="3" fill="#fff" stroke="#1d2340" stroke-width="1.5"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <div class="top"><a href="/">← BuGGy Builds</a><span class="chip" id="status">Hole 0 of 180</span></div>
+
+  <h1><span class="b">BUGGY</span> <span class="vs">vs</span> <span class="n">N8</span></h1>
+  <div class="sub"><span>THE 180 · Board Game Edition</span></div>
+
+  <section class="players">
+    <div class="pc p1" id="pcB">
+      <div class="av"><svg viewBox="-34 -96 68 104"><g filter="url(#paper)" style="color:var(--buggy)"><use href="#golfer"/><text x="0" y="-30" text-anchor="middle" font-family="Lilita One" font-size="13" fill="#fff">B</text></g></svg></div>
+      <div><div class="nm">BUGGY</div>
+        <div class="tally"><span class="tk star"><i></i><span id="sB">0</span></span><span class="tk coin"><i>¢</i><span id="cB">0</span></span></div>
+        <div class="mini" id="mB">0 strokes · E</div></div>
+    </div>
+    <div class="real">
+      <small>The real match · strokes</small>
+      <div class="big" id="lead">All square</div>
+      <div class="holes" id="holesTxt">0 of 180 holes</div>
+      <div class="bar"><b id="prog"></b></div>
+    </div>
+    <div class="pc p2" id="pcN">
+      <div class="av"><svg viewBox="-34 -96 68 104"><g filter="url(#paper)" style="color:var(--n8)"><use href="#golfer"/><text x="0" y="-30" text-anchor="middle" font-family="Lilita One" font-size="12" fill="#fff">N8</text></g></svg></div>
+      <div><div class="nm">N8</div>
+        <div class="tally"><span class="tk star"><i></i><span id="sN">0</span></span><span class="tk coin"><i>¢</i><span id="cN">0</span></span></div>
+        <div class="mini" id="mN">0 strokes · E</div></div>
+    </div>
+  </section>
+
+  <div class="boardbox">
+    <svg id="board" viewBox="0 0 1000 620" role="img" aria-label="Game board with Buggy and N8 pieces"></svg>
+    <div class="toast" id="toast"></div>
+    <div class="empty" id="empty" hidden><span>No holes logged yet. Both pieces are waiting on Start.</span><button class="btn go" id="demoBtn">Watch a sample game</button></div>
+  </div>
+
+  <div class="ctrl">
+    <button class="btn" id="prev" aria-label="Previous hole">◀</button>
+    <button class="btn go" id="play">▶ Replay</button>
+    <button class="btn" id="next" aria-label="Next hole">▶</button>
+    <div class="scrub"><label for="scrub" id="scrubLbl">After hole 0</label><input type="range" id="scrub" min="0" max="0" value="0"></div>
+    <button class="btn blue" id="now">Now</button>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2 id="feedTitle">This hole</h2>
+      <ul class="feed" id="feed"></ul>
+      <h2 style="margin-top:16px">Rounds · winner takes a star</h2>
+      <div class="rounds" id="rounds"></div>
+    </section>
+    <section class="panel">
+      <h2>How the board works</h2>
+      <ul class="rules">
+        <li><span class="sw" style="background:var(--ink)">⛳</span>Every hole is a turn. Your score is your dice roll.</li>
+      </ul>
+      <table class="moves"><tr><td>Eagle or better</td><td>6 spaces</td></tr><tr><td>Birdie</td><td>5</td></tr><tr><td>Par</td><td>4</td></tr><tr><td>Bogey</td><td>3</td></tr><tr><td>Double</td><td>2</td></tr><tr><td>Triple</td><td>1</td></tr><tr><td>Worse</td><td>0, you stay put</td></tr></table>
+      <ul class="rules" style="margin-top:12px">
+        <li><span class="sw" style="background:var(--blue)">+3</span>Blue space: +3 coins</li>
+        <li><span class="sw" style="background:var(--red)">−3</span>Red space: −3 coins</li>
+        <li><span class="sw" style="background:var(--green)">?</span>Green space: a random golf thing happens</li>
+        <li><span class="sw" style="background:var(--gold); color:var(--ink)">★</span>Pass the star with 20 coins and you buy a star</li>
+        <li><span class="sw" style="background:#fff; color:var(--ink)">5</span>Win the hole outright: +5 coins</li>
+        <li><span class="sw" style="background:var(--gold2)">★</span>Lowest total over each 18: a bonus star</li>
+      </ul>
+      <p class="note">Board winner: most stars, then most coins. The real match is still decided by total strokes.</p>
+    </section>
+  </div>
+
+  <details class="add panel">
+    <summary class="btn red">+ Add a hole</summary>
+    <div class="form">
+      <label>Par<select id="fPar"><option>3</option><option selected>4</option><option>5</option></select></label>
+      <label>Buggy<input id="fB" type="number" inputmode="numeric" min="1" max="15"></label>
+      <label>N8<input id="fN" type="number" inputmode="numeric" min="1" max="15"></label>
+      <button class="btn go" id="fAdd">Play it</button>
+      <button class="btn" id="fUndo">Undo last</button>
+      <button class="btn" id="fCopy">Copy scores</button>
+    </div>
+    <p class="note" id="localNote">Holes added here are saved on this device only. Copy the scores and send them over to make them official for everyone.</p>
+  </details>
+
+  <div class="foot"><span>BuGGy Builds</span> · Buggy vs N8 · The 180</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+const LKEY = 'the180-local-holes';
+const P = ['buggy', 'n8'];
+const NAME = { buggy: 'Buggy', n8: 'N8' };
+const COLOR = { buggy: '#ff4141', n8: '#2f6bff' };
+
+/* ---------- board layout ---------- */
+const N = 36, STAR = 18;
+// space types around the loop: S start, B blue, R red, G green (?), X star
+const TYPES = 'SBBGBRBBGBBRBGBBRBXBBGBRBBGBBRBGBRBB'.split('');
+const TRACK = 'M150 330 C120 170 270 90 420 120 S640 60 770 110 S930 250 880 380 S760 560 590 520 S380 580 260 520 S165 440 150 330 Z';
+
+const board = $('board');
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || board).appendChild(e); return e; };
+
+let TALL = false;
+function drawBoard() {
+  board.innerHTML = '';
+  TALL = innerWidth < 640;
+  board.setAttribute('viewBox', TALL ? '0 0 620 1000' : '0 0 1000 620');
+  // on phones the whole board is flipped on its diagonal so it stands tall
+  const T = (x, y) => TALL ? { x: y, y: x } : { x, y };
+  const deco = el('g', TALL ? { transform: 'matrix(0 1 1 0 0 0)' } : {});
+  const root = board;
+  const elD = (tag, attrs) => el(tag, attrs, deco);
+  // water, sand, trees and the clubhouse flag in the middle
+  elD('path', { d: 'M0 0H1000V620H0Z', fill: '#47b553' });
+  for (let i = 0; i < 70; i++) elD('circle', { cx: (i * 137) % 1000, cy: (i * 89) % 620, r: 3 + (i % 3), fill: '#3ea64a' });
+  elD('path', { d: 'M470 250 C520 215 640 225 660 280 S600 360 520 345 S430 290 470 250Z', fill: '#4fc3f7', stroke: '#1d2340', 'stroke-width': 4 });
+  elD('path', { d: 'M500 270 q20 -10 40 0 M560 300 q20 -10 40 0', stroke: '#fff', 'stroke-width': 4, fill: 'none', 'stroke-linecap': 'round', opacity: .7 });
+  elD('path', { d: 'M300 260 C330 230 400 240 395 280 S320 320 300 300Z', fill: '#f2d38b', stroke: '#1d2340', 'stroke-width': 4 });
+  elD('path', { d: 'M690 330 C720 310 780 320 770 350 S700 375 690 330Z', fill: '#f2d38b', stroke: '#1d2340', 'stroke-width': 4 });
+  // green with the flag
+  elD('ellipse', { cx: 560, cy: 420, rx: 95, ry: 42, fill: '#7be37f', stroke: '#1d2340', 'stroke-width': 4 });
+  elD('ellipse', { cx: 575, cy: 425, rx: 8, ry: 4, fill: '#1d2340' });
+  const fb = T(575, 425), ft = T(575, 330);
+  el('line', { x1: fb.x, y1: fb.y, x2: fb.x, y2: fb.y - 95, stroke: '#1d2340', 'stroke-width': 5 });
+  el('path', { d: `M${fb.x} ${fb.y - 93} l65 16 l-65 18Z`, fill: '#ff4141', stroke: '#1d2340', 'stroke-width': 4, 'stroke-linejoin': 'round' });
+  const t = el('text', { x: fb.x + 23, y: fb.y - 70, 'font-family': 'Lilita One', 'font-size': 16, fill: '#fff', 'text-anchor': 'middle' }); t.textContent = '180';
+  const trees = [[60, 90], [40, 520], [960, 70], [950, 560], [430, 40], [470, 605], [70, 300], [975, 330], [250, 380], [770, 230]];
+  for (const [x, y] of trees) { elD('rect', { x: x - 4, y: y, width: 8, height: 18, fill: '#7a4b2a', stroke: '#1d2340', 'stroke-width': 3 }); elD('circle', { cx: x, cy: y - 6, r: 22, fill: '#1f8a3b', stroke: '#1d2340', 'stroke-width': 4 }); elD('circle', { cx: x - 7, cy: y - 12, r: 6, fill: '#ffffff33' }); }
+
+  // the track and spaces
+  const track = elD('path', { d: TRACK, fill: 'none', stroke: '#f6e7c1', 'stroke-width': 30, 'stroke-linejoin': 'round' });
+  elD('path', { d: TRACK, fill: 'none', stroke: '#1d2340', 'stroke-width': 4, 'stroke-dasharray': '2 14', 'stroke-linecap': 'round', opacity: .35 });
+  const L = track.getTotalLength();
+  const pts = [];
+  for (let i = 0; i < N; i++) { const p = track.getPointAtLength(L * i / N); pts.push(T(p.x, p.y)); }
+  const fill = { S: '#ffffff', B: '#2f6bff', R: '#ff4141', G: '#2fbf55', X: '#ffc61a' };
+  pts.forEach((p, i) => {
+    const ty = TYPES[i], r = ty === 'X' || ty === 'S' ? 27 : 21;
+    el('ellipse', { cx: p.x, cy: p.y + 5, rx: r, ry: r * .92, fill: '#1d2340' });
+    el('circle', { cx: p.x, cy: p.y, r, fill: fill[ty], stroke: '#1d2340', 'stroke-width': 4 });
+    el('circle', { cx: p.x - r * .35, cy: p.y - r * .35, r: r * .25, fill: '#ffffff55' });
+    let lbl = { B: '+3', R: '−3', G: '?', X: '★', S: 'GO' }[ty];
+    const t = el('text', { x: p.x, y: p.y + (ty === 'X' ? 9 : 5), 'text-anchor': 'middle', class: 'space-lbl', 'font-size': ty === 'X' ? 28 : 15 });
+    if (ty === 'S') t.style.fill = '#1d2340';
+    t.textContent = lbl;
+  });
+  return pts;
+}
+let PTS = drawBoard();
+
+// the paper pieces on the board, each on a little stand
+const pieces = {};
+function makePieces() {
+for (const p of P) {
+  const g = el('g', { class: 'piece' });
+  el('ellipse', { cx: 0, cy: 2, rx: 17, ry: 6, fill: '#1d2340', opacity: .85 }, g);
+  const fig = el('g', { filter: 'url(#paper)', style: `color:${COLOR[p]}` }, g);
+  el('use', { href: '#golfer' }, fig);
+  const t = el('text', { x: 0, y: -30, 'text-anchor': 'middle', 'font-family': 'Lilita One', 'font-size': p === 'n8' ? 12 : 13, fill: '#fff' }, fig);
+  t.textContent = p === 'n8' ? 'N8' : 'B';
+  pieces[p] = { g, fig, x: 0, y: 0 };
+}
+}
+makePieces();
+let wasTall = TALL;
+addEventListener('resize', () => { if ((innerWidth < 640) !== wasTall) { PTS = drawBoard(); wasTall = TALL; makePieces(); if (sim) render(cur); } });
+
+/* ---------- the rules, played hole by hole ---------- */
+const EVENTS = [
+  { t: 'Lucky kick off the cart path', c: 5 },
+  { t: 'Ball in the drink', c: -5 },
+  { t: 'Found three balls in the woods', c: 3 },
+  { t: 'Bought the beer cart a round', c: -4 },
+  { t: 'Warp pipe! Swapped spots with', swap: true },
+  { t: 'Sank a long one for the skins', c: 6 },
+  { t: 'Broke a club over the knee', c: -3 },
+  { t: 'Pace of play penalty', c: -2 },
+];
+const steps = (s, par) => Math.max(0, Math.min(6, 4 - (s - par)));
+const tag = d => d <= -3 ? 'Albatross!' : d === -2 ? 'Eagle' : d === -1 ? 'Birdie' : d === 0 ? 'Par' : d === 1 ? 'Bogey' : d === 2 ? 'Double' : d === 3 ? 'Triple' : `+${d}`;
+const toPar = n => n === 0 ? 'E' : n > 0 ? `+${n}` : `${n}`;
+
+function simulate(holes) {
+  const st = { buggy: { pos: 0, coins: 10, stars: 0, strokes: 0, par: 0, won: 0 }, n8: { pos: 0, coins: 10, stars: 0, strokes: 0, par: 0, won: 0 } };
+  const out = [{ state: structuredClone(st), log: [] }];
+  const roundTot = [];
+  holes.forEach((h, i) => {
+    const log = [];
+    const r = Math.floor(i / 18);
+    roundTot[r] = roundTot[r] || { buggy: 0, n8: 0 };
+    for (const p of P) {
+      const me = st[p], other = st[p === 'buggy' ? 'n8' : 'buggy'];
+      const s = h[p], d = s - h.par, n = steps(s, h.par);
+      me.strokes += s; me.par += h.par; roundTot[r][p] += s;
+      const from = me.pos; const lines = [];
+      for (let k = 1; k <= n; k++) {
+        const at = (from + k) % N;
+        if (at === STAR && me.coins >= 20) { me.coins -= 20; me.stars++; lines.push('Passed the star with 20 coins: bought a ★'); }
+      }
+      me.pos = (from + n) % N;
+      const ty = TYPES[me.pos];
+      let land = '';
+      if (n === 0) land = 'Stayed put.';
+      else if (ty === 'B') { me.coins += 3; land = 'Blue space: +3 coins.'; }
+      else if (ty === 'R') { me.coins = Math.max(0, me.coins - 3); land = 'Red space: −3 coins.'; }
+      else if (ty === 'G') {
+        const ev = EVENTS[(i * 3 + (p === 'n8' ? 5 : 0)) % EVENTS.length];
+        if (ev.swap) { const a = me.pos; me.pos = other.pos; other.pos = a; land = `? space. ${ev.t} ${NAME[p === 'buggy' ? 'n8' : 'buggy']}!`; }
+        else { me.coins = Math.max(0, me.coins + ev.c); land = `? space. ${ev.t}: ${ev.c > 0 ? '+' : '−'}${Math.abs(ev.c)} coins.`; }
+      }
+      else if (ty === 'X') land = 'Landed on the star space.';
+      else if (ty === 'S') { me.coins += 3; land = 'Back at GO: +3 coins.'; }
+      log.push({ p, s, d, n, from, text: `${s} (${tag(d)}). Moves ${n}. ${land}${lines.length ? ' ' + lines.join(' ') : ''}` });
+    }
+    if (h.buggy !== h.n8) {
+      const w = h.buggy < h.n8 ? 'buggy' : 'n8';
+      st[w].coins += 5; st[w].won++;
+      log.push({ p: w, win: true, text: `${NAME[w]} wins the hole: +5 coins.` });
+    } else log.push({ p: null, text: 'Hole halved. No bonus.' });
+    if ((i + 1) % 18 === 0) {
+      const t = roundTot[r];
+      if (t.buggy !== t.n8) { const w = t.buggy < t.n8 ? 'buggy' : 'n8'; st[w].stars++; log.push({ p: w, star: true, text: `Round ${r + 1} done (${t.buggy}–${t.n8}). ${NAME[w]} takes the bonus ★.` }); }
+      else log.push({ p: null, text: `Round ${r + 1} done, tied at ${t.buggy}. No star.` });
+    }
+    out.push({ state: structuredClone(st), log, hole: h, i });
+  });
+  return { frames: out, roundTot };
+}
+
+/* ---------- data ---------- */
+let official = [], local = [], demo = false, holes = [], sim = null, cur = 0, playing = false;
+try { local = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (e) { local = []; }
+const saveLocal = () => { try { localStorage.setItem(LKEY, JSON.stringify(local)); } catch (e) {} };
+
+function demoHoles(n) {
+  let seed = 180; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const pars = [4, 4, 3, 5, 4, 4, 3, 4, 5, 4, 3, 4, 5, 4, 4, 3, 4, 5];
+  const roll = (par, skill) => { const x = rnd() + skill; return par + (x < .08 ? -1 : x < .45 ? 0 : x < .8 ? 1 : x < .95 ? 2 : 3); };
+  return Array.from({ length: n }, (_, i) => { const par = pars[i % 18]; return { par, buggy: roll(par, 0), n8: roll(par, .03) }; });
+}
+
+function rebuild(goTo) {
+  holes = demo ? demoHoles(54) : official.concat(local);
+  sim = simulate(holes);
+  $('scrub').max = holes.length;
+  $('empty').hidden = holes.length > 0 || demo;
+  $('fUndo').disabled = !local.length;
+  show(goTo == null ? holes.length : goTo, false);
+}
+
+/* ---------- drawing state ---------- */
+function placePiece(p, pos, other, hop = 0) {
+  const pt = PTS[pos];
+  const shared = other === pos;
+  const dx = shared ? (p === 'buggy' ? -20 : 20) : 0;
+  const x = pt.x + dx, y = pt.y - 4 - hop;
+  pieces[p].x = x; pieces[p].y = y;
+  pieces[p].g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(1)`);
+}
+function bump(id, v) { const e = $(id); if (e.textContent !== String(v)) { e.textContent = v; e.parentElement.animate([{ transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 300 }); } }
+
+function render(k) {
+  const f = sim.frames[k], s = f.state;
+  placePiece('buggy', s.buggy.pos, s.n8.pos); placePiece('n8', s.n8.pos, s.buggy.pos);
+  // whoever is behind on the board draws first so the leader stands in front
+  if (s.buggy.pos > s.n8.pos) board.appendChild(pieces.buggy.g); else board.appendChild(pieces.n8.g);
+  bump('sB', s.buggy.stars); bump('cB', s.buggy.coins); bump('sN', s.n8.stars); bump('cN', s.n8.coins);
+  $('mB').textContent = `${s.buggy.strokes} strokes · ${toPar(s.buggy.strokes - s.buggy.par)} · ${s.buggy.won} holes won`;
+  $('mN').textContent = `${s.n8.strokes} strokes · ${toPar(s.n8.strokes - s.n8.par)} · ${s.n8.won} holes won`;
+  const sb = s.buggy, sn = s.n8;
+  const bScore = sb.stars * 1000 + sb.coins, nScore = sn.stars * 1000 + sn.coins;
+  $('pcB').classList.toggle('lead', k > 0 && bScore > nScore); $('pcN').classList.toggle('lead', k > 0 && nScore > bScore);
+  const diff = sb.strokes - sn.strokes;
+  const lead = $('lead'); lead.className = 'big' + (diff < 0 ? ' b' : diff > 0 ? ' n' : '');
+  lead.textContent = diff === 0 ? 'All square' : `${diff < 0 ? 'Buggy' : 'N8'} by ${Math.abs(diff)}`;
+  $('holesTxt').textContent = `${k} of 180 holes${demo ? ' · sample game' : ''}`;
+  $('prog').style.width = (k / 180 * 100) + '%';
+  $('status').textContent = demo ? 'Sample game' : `Hole ${holes.length} of 180`;
+  $('scrub').value = k; $('scrubLbl').textContent = k === 0 ? 'Start of the match' : `After hole ${k}${k > official.length && !demo ? ' (this device)' : ''}`;
+  $('prev').disabled = k === 0; $('next').disabled = k >= holes.length;
+
+  // feed
+  const feed = $('feed');
+  if (k === 0) { $('feedTitle').textContent = 'This hole'; feed.innerHTML = `<li><span class="dot" style="background:#1d2340">⛳</span><div><div class="hd">Tee it up</div><p>Both pieces start on GO with 10 coins.</p></div></li>`; }
+  else {
+    const h = f.hole, rd = Math.floor(f.i / 18) + 1, hn = f.i % 18 + 1;
+    $('feedTitle').textContent = `Hole ${k} · Round ${rd}, hole ${hn} · Par ${h.par}${h.course ? ' · ' + h.course : ''}`;
+    feed.innerHTML = f.log.map(l => {
+      const bg = l.p ? COLOR[l.p] : '#8a90a8';
+      const icon = l.star ? '★' : l.win ? '+5' : l.p === 'n8' ? 'N8' : l.p === 'buggy' ? 'B' : '=';
+      const hd = l.star ? 'Round star' : l.win ? 'Hole winner' : l.p ? NAME[l.p] : 'Halved';
+      const txt = l.text.replace(/</g, '&lt;');
+      return `<li><span class="dot" style="background:${bg}">${icon}</span><div><div class="hd">${hd}</div><p>${txt}</p></div></li>`;
+    }).join('');
+  }
+  // rounds
+  let html = '';
+  for (let r = 0; r < 10; r++) {
+    const done = k >= (r + 1) * 18, t = sim.roundTot[r];
+    let cls = 'rd', top = '–', sub = `Rd ${r + 1}`;
+    if (done && t) { cls += t.buggy < t.n8 ? ' wb' : t.n8 < t.buggy ? ' wn' : ''; top = t.buggy < t.n8 ? 'Buggy' : t.n8 < t.buggy ? 'N8' : 'Tie'; sub = `${t.buggy}–${t.n8}`; }
+    else if (k > r * 18 && k < (r + 1) * 18) { cls += ' now'; top = `${k - r * 18}/18`; }
+    html += `<div class="${cls}"><b>${top}</b>${sub}</div>`;
+  }
+  $('rounds').innerHTML = html;
+}
+
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1400); }
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// hop a piece space by space along the board
+async function hopAlong(p, from, n, otherPos) {
+  for (let k = 1; k <= n; k++) {
+    const a = PTS[(from + k - 1) % N], b = PTS[(from + k) % N];
+    const t0 = performance.now(), dur = 210;
+    await new Promise(res => {
+      (function step(now) {
+        const t = Math.min(1, (now - t0) / dur);
+        const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t - 4 - Math.sin(t * Math.PI) * 34;
+        pieces[p].g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(1) rotate(${Math.sin(t * Math.PI * 2) * 8})`);
+        t < 1 ? requestAnimationFrame(step) : res();
+      })(t0);
+    });
+  }
+}
+
+let showId = 0;
+async function show(k, animate) {
+  const id = ++showId;
+  k = Math.max(0, Math.min(holes.length, k));
+  if (animate && !reduced && k === cur + 1) {
+    const f = sim.frames[k];
+    board.appendChild(pieces.buggy.g);
+    for (const l of f.log.filter(l => l.n != null)) {
+      board.appendChild(pieces[l.p].g);
+      toast(`${NAME[l.p]}: ${tag(l.d)} → ${l.n}`);
+      await hopAlong(l.p, l.from, l.n);
+      if (id !== showId) return;
+      await sleep(160);
+      if (id !== showId) return;
+    }
+    const w = f.log.find(l => l.star) || f.log.find(l => l.win);
+    if (w) toast(w.star ? `★ ${NAME[w.p]} takes Round ${Math.floor(f.i / 18) + 1}` : `${NAME[w.p]} wins the hole +5`);
+  }
+  cur = k; render(k);
+}
+
+async function replay() {
+  if (playing) { playing = false; return; }
+  playing = true; $('play').textContent = '❚❚ Pause';
+  if (cur >= holes.length) await show(0, false);
+  while (playing && cur < holes.length) { await show(cur + 1, true); await sleep(380); }
+  playing = false; $('play').textContent = '▶ Replay'; $('play').textContent = '▶ Replay';
+}
+
+/* ---------- wiring ---------- */
+const halt = () => { playing = false; $('play').textContent = '▶ Replay'; };
+$('prev').onclick = () => { halt(); show(cur - 1, false); };
+$('next').onclick = () => { halt(); show(cur + 1, true); };
+$('now').onclick = () => { halt(); show(holes.length, false); };
+$('scrub').oninput = e => { halt(); show(+e.target.value, false); };
+$('play').onclick = replay;
+$('demoBtn').onclick = () => { demo = true; rebuild(0); $('status').textContent = 'Sample game'; replay(); };
+addEventListener('keydown', e => {
+  if (e.target.closest('input,select,textarea')) return;
+  if (e.key === 'ArrowRight') $('next').click(); else if (e.key === 'ArrowLeft') $('prev').click(); else if (e.key === ' ') { e.preventDefault(); replay(); }
+});
+
+$('fAdd').onclick = async () => {
+  const par = +$('fPar').value, b = +$('fB').value, n = +$('fN').value;
+  if (!(b >= 1 && b <= 15 && n >= 1 && n <= 15)) { toast('Enter both scores'); return; }
+  if (holes.length >= 180) { toast('All 180 are in the books'); return; }
+  if (demo) { demo = false; }
+  playing = false;
+  local.push({ par, buggy: b, n8: n }); saveLocal();
+  const before = official.length + local.length - 1;
+  rebuild(before);
+  $('fB').value = ''; $('fN').value = ''; $('fB').focus();
+  await show(before + 1, true);
+};
+$('fUndo').onclick = () => { if (!local.length) return; local.pop(); saveLocal(); demo = false; rebuild(); toast('Removed the last hole'); };
+$('fCopy').onclick = async () => {
+  const all = official.concat(local);
+  const txt = all.map((h, i) => `${i + 1}: par ${h.par}, Buggy ${h.buggy}, N8 ${h.n8}`).join('\n') || 'No holes yet';
+  try { await navigator.clipboard.writeText(txt); toast('Scores copied'); } catch (e) { prompt('Copy these scores:', txt); }
+};
+['fB', 'fN'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('fAdd').click(); }));
+
+fetch('scores.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : { holes: [] }).catch(() => ({ holes: [] })).then(d => {
+  official = (d.holes || []).filter(h => h && h.par && h.buggy && h.n8);
+  // a hole already made official shouldn't be counted twice from this device
+  if (local.length && official.length) {
+    const sig = h => `${h.par}-${h.buggy}-${h.n8}`;
+    const tail = official.slice(-local.length).map(sig).join('|');
+    if (tail === local.map(sig).join('|')) { local = []; saveLocal(); }
+  }
+  $('localNote').textContent = local.length ? `${local.length} hole${local.length > 1 ? 's' : ''} saved on this device only. Copy the scores and send them over to make them official for everyone.` : $('localNote').textContent;
+  rebuild();
+});
+</script>
+</body>
+</html>
