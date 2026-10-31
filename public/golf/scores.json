@@ -1,5 +1,5 @@
 {
   "match": "Buggy vs N8 — The 180",
-  "note": "One entry per hole, in the order played. par = 3/4/5, buggy and n8 = strokes. Optional: course (shown on the first hole of each round).",
+  "note": "One entry per hole, in the order played. par = 3/4/5, buggy and n8 = strokes. Optional: course and date (on the first hole of each round), putts / lost / sand as {"buggy": n, "n8": n} — those turn on the putting, lost ball and bunker stats.",
   "holes": []
 }

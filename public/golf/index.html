@@ -104,7 +104,33 @@ details.add summary::-webkit-details-marker{display:none}
 
 .foot{text-align:center; margin-top:30px; font-size:12px; color:#33406a}
 
+/* lifetime: lead chart + tug of war */
+.life{margin-top:18px}
+.life .hdr{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+.life .hdr h2{margin:0}
+#life{display:block; width:100%; height:auto; background:#fff; border:3px solid var(--ink); border-radius:16px}
+.lifectl{display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap}
+.lifectl .scrub{min-width:160px}
+.lifeLead{font:400 22px 'Lilita One'}
+/* match stats */
+.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:14px}
+.tile{background:#fff; border:3px solid var(--ink); border-radius:14px; padding:8px 10px}
+.tile small{display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#56607f}
+.tile b{display:block; font:400 26px/1.1 'Lilita One'}
+.tile span{font-size:12px; color:#3a4364}
+table.h2h{width:100%; border-collapse:collapse; background:#fff; border:3px solid var(--ink); border-radius:14px; overflow:hidden; font-size:14px}
+table.h2h th,table.h2h td{padding:6px 10px; border-top:2px dashed #0001}
+table.h2h thead th{font:400 20px 'Lilita One'; border-top:0; background:#f3f5ff}
+table.h2h td:first-child,table.h2h td:last-child{width:34%; font:400 18px 'Lilita One'}
+table.h2h td:first-child{text-align:right} table.h2h td:nth-child(2){text-align:center; color:#56607f; font-size:12px; text-transform:uppercase; letter-spacing:.05em}
+table.h2h td.w.b{color:var(--buggy)} table.h2h td.w.n{color:var(--n8)}
+table.h2h td small{display:block; font:700 11px 'Nunito'; color:#56607f}
+table.h2h tr.sec td{background:#f7f2e3; text-align:center!important; font:900 11px 'Nunito'; letter-spacing:.12em; color:#56607f}
+.samplebar{display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin:-6px 0 14px; font-size:13px}
+.samplebar[hidden]{display:none}
+.samplebar span{background:#fff; border:3px dashed var(--ink); border-radius:999px; padding:4px 12px}
 @media (max-width:820px){
+  table.h2h{font-size:13px} table.h2h td:first-child,table.h2h td:last-child{font-size:16px}
   .players{grid-template-columns:1fr 1fr}
   .real{grid-column:1 / -1; order:3}
   .pc,.pc.p2{grid-template-columns:1fr; text-align:center; padding:10px}
@@ -158,6 +184,8 @@ details.add summary::-webkit-details-marker{display:none}
   <h1><span class="b">BUGGY</span> <span class="vs">vs</span> <span class="n">N8</span></h1>
   <div class="sub"><span>THE 180 · Board Game Edition</span></div>
 
+  <div class="samplebar" id="sampleBar" hidden><span>Sample match: made-up scores for testing</span><button class="btn" id="exitSample">Back to the real match</button></div>
+
   <section class="players">
     <div class="pc p1" id="pcB">
       <div class="av"><svg viewBox="-34 -96 68 104"><g filter="url(#paper)" style="color:var(--buggy)"><use href="#golfer"/><text x="0" y="-30" text-anchor="middle" font-family="Lilita One" font-size="13" fill="#fff">B</text></g></svg></div>
@@ -190,6 +218,7 @@ details.add summary::-webkit-details-marker{display:none}
     <button class="btn go" id="play">▶ Replay</button>
     <button class="btn" id="next" aria-label="Next hole">▶</button>
     <div class="scrub"><label for="scrub" id="scrubLbl">After hole 0</label><input type="range" id="scrub" min="0" max="0" value="0"></div>
+    <button class="btn" id="speed" title="Replay speed">1×</button>
     <button class="btn blue" id="now">Now</button>
   </div>
 
@@ -218,6 +247,21 @@ details.add summary::-webkit-details-marker{display:none}
     </section>
   </div>
 
+  <section class="panel life" id="lifeBox">
+    <div class="hdr"><h2>Lifetime · the lead, hole by hole</h2><span class="lifeLead" id="lifeLead">All square</span></div>
+    <svg id="life" viewBox="0 0 1000 440" role="img" aria-label="Chart of the stroke lead over the match, with a tug of war between Buggy and N8"></svg>
+    <div class="lifectl">
+      <button class="btn go" id="lifePlay">▶ Play it back</button>
+      <div class="scrub"><label for="lifeScrub" id="lifeLbl">Hole 0</label><input type="range" id="lifeScrub" min="0" max="0" step="0.01" value="0"></div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:18px" id="statsBox">
+    <h2>Match stats</h2>
+    <div class="tiles" id="tiles"></div>
+    <table class="h2h" id="h2h"></table>
+  </section>
+
   <details class="add panel">
     <summary class="btn red">+ Add a hole</summary>
     <div class="form">
@@ -234,6 +278,7 @@ details.add summary::-webkit-details-marker{display:none}
   <div class="foot"><span>BuGGy Builds</span> · Buggy vs N8 · The 180</div>
 </div>
 
+<script src="sample.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
@@ -314,7 +359,7 @@ for (const p of P) {
 }
 makePieces();
 let wasTall = TALL;
-addEventListener('resize', () => { if ((innerWidth < 640) !== wasTall) { PTS = drawBoard(); wasTall = TALL; makePieces(); if (sim) render(cur); } });
+addEventListener('resize', () => { if ((innerWidth < 640) !== wasTall) { PTS = drawBoard(); wasTall = TALL; makePieces(); if (sim) { render(cur); const t = lifeT; lifeSetup(); lifeDraw(t); } } });
 
 /* ---------- the rules, played hole by hole ---------- */
 const EVENTS = [
@@ -383,19 +428,17 @@ let official = [], local = [], demo = false, holes = [], sim = null, cur = 0, pl
 try { local = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (e) { local = []; }
 const saveLocal = () => { try { localStorage.setItem(LKEY, JSON.stringify(local)); } catch (e) {} };
 
-function demoHoles(n) {
-  let seed = 180; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-  const pars = [4, 4, 3, 5, 4, 4, 3, 4, 5, 4, 3, 4, 5, 4, 4, 3, 4, 5];
-  const roll = (par, skill) => { const x = rnd() + skill; return par + (x < .08 ? -1 : x < .45 ? 0 : x < .8 ? 1 : x < .95 ? 2 : 3); };
-  return Array.from({ length: n }, (_, i) => { const par = pars[i % 18]; return { par, buggy: roll(par, 0), n8: roll(par, .03) }; });
-}
 
 function rebuild(goTo) {
-  holes = demo ? demoHoles(54) : official.concat(local);
+  holes = demo ? sampleMatch() : official.concat(local);
+  $('sampleBar').hidden = !demo;
+  renderStats();
   sim = simulate(holes);
   $('scrub').max = holes.length;
   $('empty').hidden = holes.length > 0 || demo;
   $('fUndo').disabled = !local.length;
+  lifePlaying = false; $('lifePlay').textContent = '▶ Play it back';
+  lifeSetup();
   show(goTo == null ? holes.length : goTo, false);
 }
 
@@ -435,12 +478,14 @@ function render(k) {
   if (k === 0) { $('feedTitle').textContent = 'This hole'; feed.innerHTML = `<li><span class="dot" style="background:#1d2340">⛳</span><div><div class="hd">Tee it up</div><p>Both pieces start on GO with 10 coins.</p></div></li>`; }
   else {
     const h = f.hole, rd = Math.floor(f.i / 18) + 1, hn = f.i % 18 + 1;
-    $('feedTitle').textContent = `Hole ${k} · Round ${rd}, hole ${hn} · Par ${h.par}${h.course ? ' · ' + h.course : ''}`;
+    const rh = holes[(rd - 1) * 18] || {};
+    $('feedTitle').textContent = `Hole ${k} · Round ${rd}, hole ${hn} · Par ${h.par}${rh.course ? ' · ' + rh.course : ''}`;
     feed.innerHTML = f.log.map(l => {
       const bg = l.p ? COLOR[l.p] : '#8a90a8';
       const icon = l.star ? '★' : l.win ? '+5' : l.p === 'n8' ? 'N8' : l.p === 'buggy' ? 'B' : '=';
       const hd = l.star ? 'Round star' : l.win ? 'Hole winner' : l.p ? NAME[l.p] : 'Halved';
-      const txt = l.text.replace(/</g, '&lt;');
+      let txt = l.text.replace(/</g, '&lt;');
+      if (l.n != null) { const x = []; const h = f.hole; if (h.putts) x.push(`${h.putts[l.p]} putt${h.putts[l.p] === 1 ? '' : 's'}`); if (h.lost && h.lost[l.p]) x.push(`${h.lost[l.p]} lost ball${h.lost[l.p] > 1 ? 's' : ''}`); if (h.sand && h.sand[l.p]) x.push('in the bunker'); if (x.length) txt += ` <small style="color:#8a90a8">(${x.join(', ')})</small>`; }
       return `<li><span class="dot" style="background:${bg}">${icon}</span><div><div class="hd">${hd}</div><p>${txt}</p></div></li>`;
     }).join('');
   }
@@ -459,14 +504,16 @@ function render(k) {
 let toastT;
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1400); }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+let SPEED = 1;
+const sleep = ms => new Promise(r => setTimeout(r, ms / SPEED));
+$('speed').onclick = () => { SPEED = SPEED === 1 ? 2 : SPEED === 2 ? 4 : SPEED === 4 ? 8 : 1; $('speed').textContent = SPEED + '×'; };
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // hop a piece space by space along the board
 async function hopAlong(p, from, n, otherPos) {
   for (let k = 1; k <= n; k++) {
     const a = PTS[(from + k - 1) % N], b = PTS[(from + k) % N];
-    const t0 = performance.now(), dur = 210;
+    const t0 = performance.now(), dur = 210 / SPEED;
     await new Promise(res => {
       (function step(now) {
         const t = Math.min(1, (now - t0) / dur);
@@ -507,6 +554,239 @@ async function replay() {
   playing = false; $('play').textContent = '▶ Replay'; $('play').textContent = '▶ Replay';
 }
 
+
+/* ---------- lifetime: the lead over time, and a tug of war that follows it ---------- */
+const life = $('life');
+let LW = 1000, LX1 = 975, TUG_C = 520;              // width shrinks on phones so it stays readable
+const LX0 = 70, LMID = 140, LH = 112, TUG_Y = 392;  // chart box and tug-of-war ground
+let leads = [0], lifeDom = 180, lifeScale = 5, lifeT = 0, lifePlaying = false, lifeSeen = false;
+const lel = (tag, attrs, parent) => el(tag, attrs, parent || life);
+const lx = h => LX0 + (LX1 - LX0) * h / lifeDom;
+const ly = d => LMID - Math.max(-1, Math.min(1, d / lifeScale)) * LH;
+const leadAt = t => { const i = Math.floor(t), f = t - i; const a = leads[Math.min(i, leads.length - 1)], b = leads[Math.min(i + 1, leads.length - 1)]; return a + (b - a) * f; };
+let L = {};
+
+function lifeSetup() {
+  // lead = N8 strokes − Buggy strokes, so up the chart is Buggy ahead and down is N8 ahead
+  leads = [0]; let b = 0, n = 0;
+  for (const h of holes) { b += h.buggy; n += h.n8; leads.push(n - b); }
+  const played = holes.length;
+  lifeDom = Math.min(180, Math.max(18, Math.ceil(played / 18) * 18));
+  lifeScale = Math.max(5, Math.ceil(Math.max(...leads.map(Math.abs)) / 5) * 5);
+  LW = innerWidth < 640 ? 560 : 1000; LX1 = LW - 25; TUG_C = LW * .52;
+  life.setAttribute('viewBox', `0 0 ${LW} 440`);
+  life.innerHTML = '';
+  const defs = lel('defs', {});
+  defs.innerHTML = `<linearGradient id="leadG" gradientUnits="userSpaceOnUse" x1="0" y1="${LMID - LH}" x2="0" y2="${LMID + LH}"><stop offset=".5" stop-color="#ff4141"/><stop offset=".5" stop-color="#2f6bff"/></linearGradient>
+    <clipPath id="lifeClip"><rect id="lifeClipR" x="0" y="0" width="0" height="440"/></clipPath>`;
+  // sides and grid
+  lel('rect', { x: LX0, y: LMID - LH - 8, width: LX1 - LX0, height: LH + 8, fill: '#ff41410f' });
+  lel('rect', { x: LX0, y: LMID, width: LX1 - LX0, height: LH + 8, fill: '#2f6bff0f' });
+  const lbl = (x, y, t, o) => { const e = lel('text', Object.assign({ x, y, 'font-family': 'Nunito', 'font-weight': 900, 'font-size': 13, fill: '#56607f' }, o || {})); e.textContent = t; return e; };
+  lbl(LX0 + 8, LMID - LH + 8, 'BUGGY AHEAD', { fill: '#ff4141' });
+  lbl(LX0 + 8, LMID + LH, 'N8 AHEAD', { fill: '#2f6bff' });
+  for (const v of [lifeScale, -lifeScale]) { lel('line', { x1: LX0, x2: LX1, y1: ly(v), y2: ly(v), stroke: '#0001', 'stroke-width': 2 }); lbl(LX0 - 8, ly(v) + 5, (v > 0 ? '+' : '−') + Math.abs(v), { 'text-anchor': 'end' }); }
+  lbl(LX0 - 8, LMID + 5, 'E', { 'text-anchor': 'end' });
+  for (let r = 18; r <= lifeDom; r += 18) {
+    lel('line', { x1: lx(r), x2: lx(r), y1: LMID - LH - 8, y2: LMID + LH + 8, stroke: '#1d234022', 'stroke-width': 2, 'stroke-dasharray': '4 6' });
+    if ((LW === 1000 ? lifeDom <= 90 : lifeDom <= 54) || r % (LW === 1000 ? 36 : 54) === 0) lbl(lx(r), LMID + LH + 26, `R${r / 18}`, { 'text-anchor': 'middle' });
+  }
+  lel('line', { x1: LX0, x2: LX1, y1: LMID, y2: LMID, stroke: '#1d2340', 'stroke-width': 3 });
+  // the full lead line, revealed by a growing clip
+  const pts = leads.map((d, i) => `${lx(i).toFixed(1)},${ly(d).toFixed(1)}`);
+  const g = lel('g', { 'clip-path': 'url(#lifeClip)' });
+  lel('polygon', { points: `${lx(0)},${LMID} ${pts.join(' ')} ${lx(leads.length - 1)},${LMID}`, fill: 'url(#leadG)', opacity: .18 }, g);
+  lel('polyline', { points: pts.join(' '), fill: 'none', stroke: 'url(#leadG)', 'stroke-width': 5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, g);
+  for (const side of [1, -1]) {
+    let best = 0, at = -1;
+    leads.forEach((d, i) => { if (d * side > best) { best = d * side; at = i; } });
+    if (at < 0) continue;
+    const g2 = lel('g', { class: 'callout', 'data-at': at });
+    const cx = lx(at), cy = ly(leads[at]), up = side > 0;
+    lel('circle', { cx, cy, r: 6, fill: side > 0 ? '#ff4141' : '#2f6bff', stroke: '#1d2340', 'stroke-width': 3 }, g2);
+    const tx = Math.max(LX0 + 60, Math.min(LX1 - 60, cx)), ty = up ? cy - 16 : cy + 26;
+    const t = lel('text', { x: tx, y: ty, 'text-anchor': 'middle', 'font-family': 'Lilita One', 'font-size': 16, fill: side > 0 ? '#ff4141' : '#2f6bff', stroke: '#fff', 'stroke-width': 5, 'paint-order': 'stroke' }, g2);
+    t.textContent = `${side > 0 ? 'Buggy' : 'N8'} +${best} · hole ${at}`;
+  }
+  L.tip = lel('circle', { r: 9, fill: '#fff', stroke: '#1d2340', 'stroke-width': 4 });
+  if (!played) lbl((LX0 + LX1) / 2, LMID - 14, 'No holes yet. The line starts with the first one.', { 'text-anchor': 'middle', 'font-size': 16 });
+
+  // tug of war strip
+  lel('rect', { x: 0, y: TUG_Y, width: LW, height: 48, fill: '#47b553' });
+  lel('line', { x1: 0, x2: LW, y1: TUG_Y, y2: TUG_Y, stroke: '#1d2340', 'stroke-width': 4 });
+  lel('line', { x1: TUG_C, x2: TUG_C, y1: TUG_Y - 60, y2: TUG_Y + 6, stroke: '#1d2340', 'stroke-width': 4 });
+  lel('path', { d: `M${TUG_C} ${TUG_Y - 60} l26 7 l-26 8z`, fill: '#ffc61a', stroke: '#1d2340', 'stroke-width': 3, 'stroke-linejoin': 'round' });
+  lbl(30, TUG_Y + 30, '◀ BUGGY SIDE', { fill: '#fff' });
+  lbl(LW - 30, TUG_Y + 30, 'N8 SIDE ▶', { fill: '#fff', 'text-anchor': 'end' });
+  L.rope = lel('path', { fill: 'none', stroke: '#c79a5b', 'stroke-width': 7, 'stroke-linecap': 'round' });
+  L.rope2 = lel('path', { fill: 'none', stroke: '#1d2340', 'stroke-width': 2, 'stroke-dasharray': '3 7', opacity: .5 });
+  L.knot = lel('rect', { width: 14, height: 26, rx: 4, fill: '#ff4141', stroke: '#1d2340', 'stroke-width': 3 });
+  L.pc = {};
+  for (const p of P) {
+    const wrap = lel('g', {});
+    lel('ellipse', { cx: 0, cy: 2, rx: 17, ry: 6, fill: '#1d2340', opacity: .85 }, wrap);
+    const lean = lel('g', {}, wrap);
+    const fig = lel('g', { filter: 'url(#paper)', style: `color:${COLOR[p]}` }, lean);
+    lel('use', { href: '#golfer' }, fig);
+    const t = lel('text', { x: 0, y: -30, 'text-anchor': 'middle', 'font-family': 'Lilita One', 'font-size': p === 'n8' ? 12 : 13, fill: '#fff' }, fig);
+    t.textContent = p === 'n8' ? 'N8' : 'B';
+    L.pc[p] = { wrap, lean };
+  }
+  $('lifeScrub').max = played;
+  lifeDraw(lifeSeen ? played : 0);
+  if (typeof lifeAuto === 'function') setTimeout(lifeAuto, 0);
+}
+
+function lifeDraw(t) {
+  lifeT = t = Math.max(0, Math.min(holes.length, t));
+  const d = leadAt(t);
+  $('lifeClipR').setAttribute('width', lx(t) + 6);
+  life.querySelectorAll('.callout').forEach(c => c.style.opacity = +c.dataset.at <= t ? 1 : 0);
+  L.tip.setAttribute('cx', lx(t)); L.tip.setAttribute('cy', ly(d));
+  L.tip.setAttribute('fill', d > .05 ? '#ff4141' : d < -.05 ? '#2f6bff' : '#fff');
+  // the rope's knot slides toward whoever is ahead
+  const k = TUG_C - Math.max(-1, Math.min(1, d / lifeScale)) * LW * .33;
+  const gap = LW < 1000 ? 85 : 120, ropeY = TUG_Y - 40, bx = k - gap, nx = k + gap;
+  const strain = Math.min(1, Math.abs(d) / lifeScale);
+  const wob = Math.sin(t * 9) * 2;
+  // the leader leans back hard and plants; the one behind gets dragged forward
+  const leanB = d >= 0 ? -10 - 12 * strain : -10 + 16 * strain;
+  const leanN = d <= 0 ? 10 + 12 * strain : 10 - 16 * strain;
+  L.pc.buggy.wrap.setAttribute('transform', `translate(${bx.toFixed(1)} ${TUG_Y})`);
+  L.pc.n8.wrap.setAttribute('transform', `translate(${nx.toFixed(1)} ${TUG_Y})`);
+  L.pc.buggy.lean.setAttribute('transform', `rotate(${(leanB + wob).toFixed(1)})`);
+  L.pc.n8.lean.setAttribute('transform', `rotate(${(leanN - wob).toFixed(1)})`);
+  const sag = 10 - 8 * strain;
+  const rope = `M${bx + 12} ${ropeY} Q${(bx + k) / 2} ${ropeY + sag} ${k} ${ropeY} T${nx - 12} ${ropeY}`;
+  L.rope.setAttribute('d', rope); L.rope2.setAttribute('d', rope);
+  L.knot.setAttribute('x', k - 7); L.knot.setAttribute('y', ropeY - 13);
+  const r = Math.round(d);
+  $('lifeLead').textContent = r === 0 ? 'All square' : `${r > 0 ? 'Buggy' : 'N8'} +${Math.abs(r)}`;
+  $('lifeLead').style.color = r > 0 ? 'var(--buggy)' : r < 0 ? 'var(--n8)' : 'var(--ink)';
+  const hole = Math.round(t);
+  $('lifeLbl').textContent = hole === 0 ? 'Before the first tee' : `After hole ${hole} of 180 · Round ${Math.ceil(hole / 18)}`;
+  $('lifeScrub').value = t;
+}
+
+function lifePlay() {
+  if (lifePlaying) { lifePlaying = false; $('lifePlay').textContent = '▶ Play it back'; return; }
+  const n = holes.length; if (!n) return;
+  if (reduced) { lifeDraw(n); return; }
+  lifePlaying = true; $('lifePlay').textContent = '❚❚ Pause';
+  if (lifeT >= n) lifeT = 0;
+  const per = Math.max(40, Math.min(220, 9000 / n));   // whole match plays back in ~9 seconds, slower when it's short
+  let last = performance.now();
+  (function tick(now) {
+    if (!lifePlaying) return;
+    const t = lifeT + (now - last) / per; last = now;
+    lifeDraw(t);
+    if (t < n) requestAnimationFrame(tick); else { lifePlaying = false; $('lifePlay').textContent = '▶ Play it back'; }
+  })(last);
+}
+$('lifePlay').onclick = lifePlay;
+$('lifeScrub').oninput = e => { lifePlaying = false; $('lifePlay').textContent = '▶ Play it back'; lifeDraw(+e.target.value); };
+// play it back the first time it scrolls into view
+let lifeVisible = false;
+const lifeAuto = () => { if (lifeVisible && !lifeSeen && holes.length) { lifeSeen = true; lifeT = 0; lifePlaying = false; lifePlay(); } };
+new IntersectionObserver(es => { lifeVisible = es[0].isIntersecting; lifeAuto(); }, { threshold: .5 }).observe(life);
+
+
+/* ---------- match stats ---------- */
+function matchStats(H) {
+  const S = {};
+  for (const p of P) S[p] = { strokes: 0, par: 0, won: 0, eagles: 0, birdies: 0, pars: 0, bogeys: 0, doubles: 0, snowmen: 0, worst: null, rounds: [], byPar: { 3: [0, 0], 4: [0, 0], 5: [0, 0] }, streak: 0, bestStreak: 0, putts: 0, puttHoles: 0, three: 0, one: 0, lost: 0, sand: 0, extra: false, lead: 0, leadAt: 0, comeback: 0 };
+  let lead = 0, changes = 0, square = 0, halved = 0, lastSign = 0, low = { buggy: 0, n8: 0 }, bigRound = null;
+  H.forEach((h, i) => {
+    for (const p of P) {
+      const me = S[p], s = h[p], d = s - h.par;
+      me.strokes += s; me.par += h.par;
+      if (d <= -2) me.eagles++; else if (d === -1) me.birdies++; else if (d === 0) me.pars++; else if (d === 1) me.bogeys++; else me.doubles++;
+      if (s === 8) me.snowmen++;
+      if (!me.worst || d > me.worst.d) me.worst = { d, s, hole: i + 1 };
+      if (me.byPar[h.par]) { me.byPar[h.par][0] += s; me.byPar[h.par][1]++; }
+      const r = Math.floor(i / 18); me.rounds[r] = (me.rounds[r] || 0) + s;
+      if (h.putts && h.putts[p] != null) { me.extra = true; me.putts += h.putts[p]; me.puttHoles++; if (h.putts[p] >= 3) me.three++; if (h.putts[p] === 1) me.one++; }
+      if (h.lost) me.lost += h.lost[p] || 0;
+      if (h.sand) me.sand += h.sand[p] || 0;
+    }
+    const w = h.buggy < h.n8 ? 'buggy' : h.n8 < h.buggy ? 'n8' : null;
+    if (!w) { halved++; S.buggy.streak = S.n8.streak = 0; }
+    else { const o = w === 'buggy' ? 'n8' : 'buggy'; S[w].won++; S[w].streak++; S[o].streak = 0; S[w].bestStreak = Math.max(S[w].bestStreak, S[w].streak); }
+    lead += h.n8 - h.buggy;                       // + = Buggy ahead
+    if (lead === 0) square++;
+    if (lead > S.buggy.lead) { S.buggy.lead = lead; S.buggy.leadAt = i + 1; }
+    if (-lead > S.n8.lead) { S.n8.lead = -lead; S.n8.leadAt = i + 1; }
+    low.buggy = Math.min(low.buggy, lead); low.n8 = Math.min(low.n8, -lead);
+    const sg = Math.sign(lead);
+    if (sg && lastSign && sg !== lastSign) { changes++; const who = sg > 0 ? 'buggy' : 'n8'; S[who].comeback = Math.max(S[who].comeback, -low[who]); low[who] = 0; }
+    if (sg) lastSign = sg;
+    if ((i + 1) % 18 === 0) { const r = (i + 1) / 18 - 1, m = S.n8.rounds[r] - S.buggy.rounds[r]; if (!bigRound || Math.abs(m) > Math.abs(bigRound.m)) bigRound = { r: r + 1, m, course: (H[r * 18] || {}).course }; }
+  });
+  return { S, changes, square, halved, bigRound, n: H.length };
+}
+
+function renderStats() {
+  const box = $('statsBox');
+  if (!holes.length) { box.hidden = true; return; }
+  box.hidden = false;
+  const { S, changes, square, halved, bigRound } = matchStats(holes);
+  const B = S.buggy, Nn = S.n8;
+  const who = (b, n, lowWins) => b === n ? '' : (lowWins ? b < n : b > n) ? 'b' : 'n';
+  const cb = B.comeback >= Nn.comeback ? ['Buggy', B.comeback] : ['N8', Nn.comeback];
+  const st = B.bestStreak >= Nn.bestStreak ? ['Buggy', B.bestStreak] : ['N8', Nn.bestStreak];
+  const tiles = [
+    ['Lead changes', changes, 'times the lead flipped'],
+    ['All square', square, 'times it was dead even'],
+    ['Biggest comeback', cb[1] ? `${cb[0]} ${cb[1]}` : '–', cb[1] ? 'strokes erased to take the lead' : 'no comebacks yet'],
+    ['Hottest streak', st[1] ? `${st[0]} ${st[1]}` : '–', 'holes won in a row'],
+    ['Biggest round', bigRound ? `${bigRound.m > 0 ? 'Buggy' : bigRound.m < 0 ? 'N8' : 'Tie'} +${Math.abs(bigRound.m)}` : '–', bigRound ? `Round ${bigRound.r}${bigRound.course ? ' · ' + bigRound.course : ''}` : 'after 18 holes'],
+    ['Halved holes', halved, `of ${holes.length} played`],
+  ];
+  $('tiles').innerHTML = tiles.map(t => `<div class="tile"><small>${t[0]}</small><b>${t[1]}</b><span>${t[2]}</span></div>`).join('');
+
+  const avg = (p, par) => { const a = S[p].byPar[par]; return a[1] ? a[0] / a[1] : null; };
+  const f1 = v => v == null ? '–' : v.toFixed(2);
+  const done = r => r.filter((x, i) => holes.length >= (i + 1) * 18);
+  const bestR = p => { const r = done(S[p].rounds); return r.length ? Math.min(...r) : null; };
+  const worstR = p => { const r = done(S[p].rounds); return r.length ? Math.max(...r) : null; };
+  const rows = [
+    ['sec', 'Scoring'],
+    ['Strokes', B.strokes, Nn.strokes, true],
+    ['To par', toPar(B.strokes - B.par), toPar(Nn.strokes - Nn.par), true, B.strokes - B.par, Nn.strokes - Nn.par],
+    ['Holes won', B.won, Nn.won, false],
+    ['Biggest lead', B.lead ? `+${B.lead}` : '–', Nn.lead ? `+${Nn.lead}` : '–', false, B.lead, Nn.lead, B.lead ? `hole ${B.leadAt}` : '', Nn.lead ? `hole ${Nn.leadAt}` : ''],
+    ['sec', 'The good'],
+    ['Eagles', B.eagles, Nn.eagles, false],
+    ['Birdies', B.birdies, Nn.birdies, false],
+    ['Pars', B.pars, Nn.pars, false],
+    ['Best round', bestR('buggy') ?? '–', bestR('n8') ?? '–', true],
+    ['sec', 'The ugly'],
+    ['Bogeys', B.bogeys, Nn.bogeys, true],
+    ['Double or worse', B.doubles, Nn.doubles, true],
+    ['Snowmen (8s)', B.snowmen, Nn.snowmen, true],
+    ['Blow-up hole', B.worst ? `${B.worst.s} (+${B.worst.d})` : '–', Nn.worst ? `${Nn.worst.s} (+${Nn.worst.d})` : '–', true, B.worst && B.worst.d, Nn.worst && Nn.worst.d, B.worst ? `hole ${B.worst.hole}` : '', Nn.worst ? `hole ${Nn.worst.hole}` : ''],
+    ['Worst round', worstR('buggy') ?? '–', worstR('n8') ?? '–', true],
+    ['sec', 'By par'],
+    ['Par 3 average', f1(avg('buggy', 3)), f1(avg('n8', 3)), true, avg('buggy', 3), avg('n8', 3)],
+    ['Par 4 average', f1(avg('buggy', 4)), f1(avg('n8', 4)), true, avg('buggy', 4), avg('n8', 4)],
+    ['Par 5 average', f1(avg('buggy', 5)), f1(avg('n8', 5)), true, avg('buggy', 5), avg('n8', 5)],
+  ];
+  if (B.extra || Nn.extra) rows.push(
+    ['sec', 'On the green and off the map'],
+    ['Putts per hole', f1(B.puttHoles ? B.putts / B.puttHoles : null), f1(Nn.puttHoles ? Nn.putts / Nn.puttHoles : null), true, B.putts / (B.puttHoles || 1), Nn.putts / (Nn.puttHoles || 1)],
+    ['One-putts', B.one, Nn.one, false],
+    ['Three-putts', B.three, Nn.three, true],
+    ['Lost balls', B.lost, Nn.lost, true],
+    ['Bunkers visited', B.sand, Nn.sand, true],
+  );
+  $('h2h').innerHTML = `<thead><tr><th style="text-align:right; color:var(--buggy)">Buggy</th><th></th><th style="text-align:left; color:var(--n8)">N8</th></tr></thead><tbody>` + rows.map(r => {
+    if (r[0] === 'sec') return `<tr class="sec"><td colspan="3">${r[1]}</td></tr>`;
+    const [lbl, b, n, lowWins, bv = b, nv = n, bs = '', ns = ''] = r;
+    const w = typeof bv === 'number' && typeof nv === 'number' ? who(bv, nv, lowWins) : '';
+    return `<tr><td class="${w === 'b' ? 'w b' : ''}">${b}${bs ? `<small>${bs}</small>` : ''}</td><td>${lbl}</td><td class="${w === 'n' ? 'w n' : ''}" style="text-align:left">${n}${ns ? `<small>${ns}</small>` : ''}</td></tr>`;
+  }).join('') + '</tbody>';
+}
+
 /* ---------- wiring ---------- */
 const halt = () => { playing = false; $('play').textContent = '▶ Replay'; };
 $('prev').onclick = () => { halt(); show(cur - 1, false); };
@@ -514,7 +794,8 @@ $('next').onclick = () => { halt(); show(cur + 1, true); };
 $('now').onclick = () => { halt(); show(holes.length, false); };
 $('scrub').oninput = e => { halt(); show(+e.target.value, false); };
 $('play').onclick = replay;
-$('demoBtn').onclick = () => { demo = true; rebuild(0); $('status').textContent = 'Sample game'; replay(); };
+$('demoBtn').onclick = () => { demo = true; lifeSeen = false; rebuild(); };
+$('exitSample').onclick = () => { demo = false; lifeSeen = false; halt(); history.replaceState(null, '', location.pathname); rebuild(); };
 addEventListener('keydown', e => {
   if (e.target.closest('input,select,textarea')) return;
   if (e.key === 'ArrowRight') $('next').click(); else if (e.key === 'ArrowLeft') $('prev').click(); else if (e.key === ' ') { e.preventDefault(); replay(); }
@@ -549,6 +830,7 @@ fetch('scores.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : { holes:
     if (tail === local.map(sig).join('|')) { local = []; saveLocal(); }
   }
   $('localNote').textContent = local.length ? `${local.length} hole${local.length > 1 ? 's' : ''} saved on this device only. Copy the scores and send them over to make them official for everyone.` : $('localNote').textContent;
+  if (/[?&]sample\b/.test(location.search)) demo = true;
   rebuild();
 });
 </script>
