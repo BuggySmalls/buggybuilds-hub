@@ -98,7 +98,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 <div class="wrap" id="top">
   <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span><a href="#index">Index of works</a></span><span>Last updated <span id="updatedTop">Oct 26, 2026</span></span><span class="v"><a href="#changelog" title="See what changed"><span class="dot"></span>Version <b id="ver">1.00</b></a></span></header>
   <h1>BuGGy<br>Builds<i>.</i></h1>
-  <div class="intro"><span class="mono">Four live · one in the works</span></div>
+  <div class="intro"><span class="mono">Five live · one in the works</span></div>
 
   <div class="sec mono" id="index"><span>§ 1</span><span><b>Index of works</b> · hover for a look, tap to open</span></div>
   <ol class="list">
@@ -106,7 +106,8 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
     <li><a class="row" href="https://cerealbowlers.org" data-peek="bowl"><span class="n">02</span><span class="t">Cereal Bowlers</span><span class="k mono">League site<br>cerealbowlers.org</span><span class="s mono"><b></b>Live, Wednesdays</span><span class="a">↗</span><span class="d">The site for our Wednesday night bowling league at Kingstown Bowl. Standings, stats, records, pick'em, betchas and a whole lot of shit talk.</span><span class="thumb" data-art="bowl"></span></a></li>
     <li><a class="row" href="/golf/" data-peek="golf"><span class="n">03</span><span class="t">The 180</span><span class="k mono">Board game<br>Buggy vs N8 golf</span><span class="s mono"><b></b>Match on</span><span class="a">↗</span><span class="d">A 180-hole golf match between Buggy and N8, played out as a party board game. Every hole is a dice roll, and you collect coins and stars along the way. Strokes still decide who wins.</span><span class="thumb" data-art="golf"></span></a></li>
     <li><a class="row" href="/spin/" data-peek="spin"><span class="n">04</span><span class="t">The Spin</span><span class="k mono">Golf game<br>Two-team match</span><span class="s mono"><b></b>Live</span><span class="a">↗</span><span class="d">Spin a wheel on every tee to pick the format: scramble, shamble, best ball, alt shot or one club. Land on One Club and a second wheel picks the only club you get for the hole. Keeps the match play score as you go.</span><span class="thumb" data-art="spin"></span></a></li>
-    <li><div class="row soon"><span class="n">05</span><span class="t">Coming soon</span><span class="k mono">Next build<br>On the bench</span><span class="s mono"><b></b>In progress</span><span class="a">·</span><span class="d">Something new is half-built on the bench. It'll show up here when it's ready.</span></div></li>
+    <li><a class="row" href="/hook/" data-peek="hook"><span class="n">05</span><span class="t">Off the Hook</span><span class="k mono">Forecast<br>Anthropic IPO phones</span><span class="s mono"><b></b>Live</span><span class="a">↗</span><span class="d">Projects how many clients will call a brokerage taking part in the Anthropic IPO, day by day from the IOI window through debut, why they call, and how many reps it takes to pick up.</span><span class="thumb" data-art="hook"></span></a></li>
+    <li><div class="row soon"><span class="n">06</span><span class="t">Coming soon</span><span class="k mono">Next build<br>On the bench</span><span class="s mono"><b></b>In progress</span><span class="a">·</span><span class="d">Something new is half-built on the bench. It'll show up here when it's ready.</span></div></li>
   </ol>
 
   <div class="marquee" aria-hidden="true"><div class="track" id="track"></div></div>
@@ -118,7 +119,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
     </section>
     <section class="col about" id="about"><div class="sec mono" style="border:0; padding:0; grid-template-columns:1fr"><span>§ 3 · At a glance</span></div>
       <h2>By the numbers</h2>
-      <div class="facts mono"><div>Live projects<b>04</b></div><div>On the bench<b>01</b></div><div>Version<b id="verFact">1.00</b></div><div>Since<b>2026</b></div></div>
+      <div class="facts mono"><div>Live projects<b>05</b></div><div>On the bench<b>01</b></div><div>Version<b id="verFact">1.00</b></div><div>Since<b>2026</b></div></div>
     </section>
   </div>
 
@@ -131,6 +132,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 /* Changelog: newest first. The top entry sets the version shown in the corner.
    Every update to the site adds a new entry here and bumps the version by .01 (v1.01, v1.02, ...). */
 const LOG = [
+  { v: '1.07', date: '2026-11-02', items: ['New: Off the Hook. A forecast of how many clients call a brokerage taking part in the Anthropic IPO, day by day from the IOI window through debut.', 'Shows the busiest day, why people call, and how many reps it takes at the peak hour.', 'Quiet, Base and Frenzy presets, and every assumption can be changed.'] },
   { v: '1.06', date: '2026-11-01', items: ['New: The Spin. A two-team golf match where a wheel picks every hole’s format: scramble, shamble, best ball, alt shot or one club.', 'One Club holes spin a second wheel for the one club you get, putter only if you put it in the bag.', 'Keeps the match play score and a scorecard on your phone as you go.'] },
   { v: '1.05', date: '2026-10-31', items: ['The 180: a full 180-hole sample match to test with, full of lead swings. Open it from the empty board or at /golf/?sample.', 'New match stats: lead changes, comebacks, streaks, blow-up holes, par 3/4/5 averages, plus putts, lost balls and bunkers when they get logged.', 'Replay speed button (1× to 8×), and the biggest leads get called out on the lifetime chart.'] },
   { v: '1.04', date: '2026-10-31', items: ['The 180: a lifetime chart of the stroke lead, hole by hole.', 'Buggy and N8 play tug-of-war underneath it, and the rope slides toward whoever is ahead as the match plays back.'] },
@@ -148,13 +150,14 @@ document.getElementById('updatedTop').textContent = fmt(cur.date);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 document.getElementById('log').innerHTML = LOG.map(e => `<li><span class="ver">v${esc(e.v)}</span><div><div class="when mono">${fmt(e.date)}</div><ul>${e.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div></li>`).join('');
 
-const words = ['Fretfire', 'Cereal Bowlers', 'The 180', 'The Spin', 'Something new soon', 'BuGGy Builds'];
+const words = ['Fretfire', 'Cereal Bowlers', 'The 180', 'The Spin', 'Off the Hook', 'Something new soon', 'BuGGy Builds'];
 const run = words.map(w => `<span>${w}<em> ✳</em></span>`).join('');
 document.getElementById('track').innerHTML = run + run;
 
 const ART = {
   fret: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#FF3B1F"/><g fill="#111"><rect x="60" width="44" height="225" opacity=".12"/><rect x="104" width="44" height="225" opacity=".2"/><rect x="148" width="44" height="225" opacity=".12"/><rect x="192" width="44" height="225" opacity=".2"/></g><g fill="#fff"><rect x="66" y="30" width="32" height="12" rx="6"/><rect x="154" y="80" width="32" height="12" rx="6"/><rect x="110" y="120" width="32" height="12" rx="6"/><rect x="198" y="50" width="32" height="12" rx="6"/></g><g fill="none" stroke="#111" stroke-width="5"><circle cx="82" cy="188" r="14"/><circle cx="126" cy="188" r="14"/><circle cx="170" cy="188" r="14"/><circle cx="214" cy="188" r="14"/></g></svg>`,
   golf: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#F1EFEA"/><path d="M60 150 C40 70 140 40 190 60 S270 120 230 170 S90 200 60 150Z" fill="none" stroke="#111" stroke-width="18"/><g stroke="#F1EFEA" stroke-width="3"><circle cx="60" cy="150" r="13" fill="#FF3B1F"/><circle cx="78" cy="88" r="13" fill="#111"/><circle cx="140" cy="52" r="13" fill="#FF3B1F"/><circle cx="215" cy="72" r="13" fill="#111"/><circle cx="248" cy="140" r="13" fill="#FF3B1F"/><circle cx="160" cy="190" r="13" fill="#111"/></g><line x1="150" y1="150" x2="150" y2="92" stroke="#111" stroke-width="5"/><path d="M150 92 l34 9 l-34 10z" fill="#FF3B1F"/><ellipse cx="150" cy="150" rx="22" ry="7" fill="#111"/></svg>`,
+  hook: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#F1EFEA"/><g fill="#A8A398">${[0,1,2,3,4,5,6,7,8,9].map(i=>`<rect x="${34+i*24}" y="150" width="14" height="40"/>`).join('')}</g><g fill="#FF3B1F">${[4,6,8,10,13,16,40,22,12,7].map((h,i)=>`<rect x="${34+i*24}" y="${148-h*2.6}" width="14" height="${h*2.6}"/>`).join('')}</g><rect x="20" y="190" width="260" height="3" fill="#111"/><text x="20" y="44" font-family="Inter Tight,sans-serif" font-weight="900" font-size="34" fill="#111" letter-spacing="-1">RING RING</text></svg>`,
   spin: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#111"/><g transform="translate(150 118)"><path d="M0 0 L0 -92 A92 92 0 0 1 87.5 -28.4Z" fill="#FF3B1F"/><path d="M0 0 L87.5 -28.4 A92 92 0 0 1 54.1 74.4Z" fill="#F1EFEA"/><path d="M0 0 L54.1 74.4 A92 92 0 0 1 -54.1 74.4Z" fill="#FF3B1F"/><path d="M0 0 L-54.1 74.4 A92 92 0 0 1 -87.5 -28.4Z" fill="#F1EFEA"/><path d="M0 0 L-87.5 -28.4 A92 92 0 0 1 0 -92Z" fill="#77736B"/><circle r="20" fill="#111" stroke="#F1EFEA" stroke-width="4"/></g><path d="M136 10 h28 l-14 26z" fill="#FF3B1F" stroke="#111" stroke-width="3"/></svg>`,
   bowl: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#111"/><circle cx="150" cy="126" r="70" fill="#FF3B1F"/><g fill="#111"><circle cx="128" cy="104" r="10"/><circle cx="160" cy="98" r="10"/><circle cx="146" cy="128" r="10"/></g><g fill="#F1EFEA"><rect x="40" y="40" width="14" height="40" rx="7"/><rect x="60" y="40" width="14" height="40" rx="7"/><rect x="50" y="26" width="14" height="40" rx="7"/></g></svg>`
 };
