@@ -1,10 +1,19 @@
 {
-  // buggybuilds.org: a static site. Everything in ./public is served as-is; no server code.
+  // buggybuilds.org: everything in ./public is served as-is.
+  // The only server code is src/worker.js: the Breaker voice relay (one Durable Object per channel)
+  // on /breaker/ws/*. Every other path goes straight to the static files.
   // Separate from the Cereal Bowlers league site (repo BuggySmalls/buggybuilds, Worker "buggybuilds") — never merge them.
   "name": "buggybuilds-hub",
+  "main": "src/worker.js",
   "compatibility_date": "2025-09-01",
   "assets": {
     "directory": "./public",
-    "not_found_handling": "404-page"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/breaker/ws/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "CHANNEL", "class_name": "Channel" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Channel"] }]
 }
