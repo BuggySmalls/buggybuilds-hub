@@ -1,0 +1,17 @@
+{
+  "events": [
+    {
+      "id": "puttshack-dec-11",
+      "title": "Puttshack",
+      "kind": "Mini golf night",
+      "date": "2026-12-11",
+      "time": null,
+      "end": null,
+      "venue": "Puttshack Boston Seaport",
+      "address": "58 Pier 4 Blvd, Boston, MA 02210",
+      "area": "Seaport, Boston",
+      "notes": "Mini golf, food and drinks in the Seaport. Time and tee-off details coming soon.",
+      "link": "https://www.puttshack.com/locations/boston"
+    }
+  ]
+}

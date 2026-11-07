@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Events · BuGGy Builds</title>
+<meta name="description" content="Next up: Puttshack, Seaport Boston · Fri Dec 11">
+<meta property="og:title" content="Events · BuGGy Builds">
+<meta property="og:description" content="Next up: Puttshack, Seaport Boston · Fri Dec 11">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#FF3B1F">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{--paper:#F1EFEA; --ink:#111111; --muted:#77736B; --line:#111111; --red:#FF3B1F; --soft:#E4E1DA; color-scheme:light}
+@media (prefers-color-scheme:dark){ :root{--paper:#121211; --ink:#F1EFEA; --muted:#8F8A80; --line:#F1EFEA; --soft:#262523; color-scheme:dark} }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font:500 16px/1.4 'Inter Tight', system-ui, sans-serif; min-height:100vh; overflow-x:hidden}
+::selection{background:var(--red); color:#fff}
+.wrap{max-width:1240px; margin:0 auto; padding:20px 20px calc(40px + env(safe-area-inset-bottom))}
+.mono{font:500 12px/1.5 'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:.04em}
+.top{position:sticky; top:0; z-index:5; background:var(--paper); display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding:14px 0; border-bottom:2px solid var(--line)}
+.top a{color:inherit; text-decoration:none} .top a:hover{color:var(--red)}
+.top .v{text-align:right}
+.brand{text-transform:none}
+h1{font:900 clamp(64px,17vw,250px)/.82 'Inter Tight', sans-serif; letter-spacing:-.065em; margin:26px 0 22px; margin-left:-.05em}
+h1 i{font-style:normal; color:var(--red)}
+.label{display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-top:2px solid var(--line); border-bottom:1px solid var(--line); color:var(--muted)}
+.label b{color:var(--ink); font-weight:500}
+
+/* the invite */
+.invite{display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); border-bottom:2px solid var(--line)}
+.when{background:var(--red); color:#fff; padding:26px 24px 24px; display:flex; flex-direction:column; justify-content:space-between; gap:28px; min-height:340px}
+.when .dow{font:700 clamp(22px,2.4vw,30px)/1 'Inter Tight'; letter-spacing:-.02em}
+.when .day{font:900 clamp(120px,19vw,260px)/.78 'Inter Tight'; letter-spacing:-.07em; margin-left:-.04em}
+.when .mon{font:900 clamp(44px,6vw,84px)/.85 'Inter Tight'; letter-spacing:-.05em}
+.when .count{display:inline-block; white-space:nowrap; border:1.5px solid #fff; padding:6px 10px; border-radius:999px; align-self:flex-start}
+.what{padding:26px 0 26px 26px; display:flex; flex-direction:column; gap:18px; min-width:0}
+.what .kind{color:var(--red)}
+.what h2{font:900 clamp(52px,8vw,120px)/.86 'Inter Tight'; letter-spacing:-.055em; margin:0; overflow-wrap:anywhere}
+.facts{display:grid; grid-template-columns:110px 1fr; border-top:1px solid var(--line)}
+.facts dt,.facts dd{margin:0; padding:12px 0; border-bottom:1px solid var(--soft)}
+.facts dt{color:var(--muted)}
+.facts dd{font-size:19px; letter-spacing:-.01em}
+.facts dd a{color:inherit; text-decoration-color:var(--red); text-underline-offset:3px}
+.notes{font-size:clamp(18px,1.9vw,22px); line-height:1.3; letter-spacing:-.015em; margin:0; max-width:40ch}
+.btns{display:flex; flex-wrap:wrap; gap:10px; margin-top:auto}
+.btn{font:500 13px/1 'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:.04em; padding:14px 16px; border:2px solid var(--ink); background:transparent; color:var(--ink); border-radius:0; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px}
+.btn:hover,.btn:focus-visible{background:var(--ink); color:var(--paper); outline:none}
+.btn.primary{background:var(--ink); color:var(--paper)}
+.btn.primary:hover,.btn.primary:focus-visible{background:var(--red); border-color:var(--red); color:#fff}
+.toast{min-height:1.5em; color:var(--red)}
+
+/* later events */
+.list{list-style:none; margin:0; padding:0}
+.row{display:grid; grid-template-columns:80px 150px 1fr 220px 40px; align-items:baseline; gap:20px; padding:20px 0; border-bottom:1px solid var(--line); text-decoration:none; color:inherit}
+.row .n{font:500 13px 'JetBrains Mono', monospace; color:var(--muted)}
+.row .d{font:700 22px/1 'Inter Tight'; letter-spacing:-.02em; color:var(--red)}
+.row .t{font:700 clamp(30px,4.6vw,60px)/.92 'Inter Tight'; letter-spacing:-.04em; transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.row .w{color:var(--muted)}
+.row .a{font:700 28px/1 'Inter Tight'; text-align:right}
+a.row:hover .t{transform:translateX(12px)}
+.past .row{opacity:.5}
+.past .row .d{color:var(--muted)}
+.empty{padding:20px 0; color:var(--muted); border-bottom:1px solid var(--line)}
+section{margin-top:40px}
+.foot{display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding-top:18px; margin-top:40px; color:var(--muted)}
+.foot a{color:inherit} .foot span:last-child{text-align:right}
+:target .what h2{text-decoration:underline; text-decoration-color:var(--red); text-decoration-thickness:6px}
+@media (max-width:760px){
+  .top{grid-template-columns:1fr 1fr} .top span:nth-child(2),.top span:nth-child(3){display:none}
+  .invite{grid-template-columns:minmax(0,1fr)}
+  .when{min-width:0}
+  .when{min-height:0; flex-direction:row; align-items:flex-end; padding:20px 18px}
+  .when .day{font-size:120px}
+  .when .side{display:flex; flex-direction:column; align-items:flex-end; gap:10px; margin-left:auto; text-align:right}
+  .when .count{align-self:flex-end}
+  .what{padding:22px 0 24px}
+  .facts{grid-template-columns:84px 1fr}
+  .facts dd{font-size:17px}
+  .btn{flex:1 1 auto; justify-content:center}
+  .row{grid-template-columns:70px 1fr 26px; gap:10px} .row .n,.row .w{display:none} .row .a{font-size:22px}
+  .foot{grid-template-columns:1fr 1fr} .foot span:nth-child(2),.foot span:nth-child(3){display:none}
+}
+@media (prefers-reduced-motion:reduce){ .row .t{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top mono"><span><a class="brand" href="/">BuGGy Builds</a></span><span>03 · Events</span><span id="countTop"></span><span class="v"><a href="/">← Index</a></span></header>
+  <h1>Events<i>.</i></h1>
+
+  <div class="label mono"><span><b>Next up</b></span><span id="nextCount"></span></div>
+  <div id="next"><div class="empty mono">Loading…</div></div>
+
+  <section>
+    <div class="label mono"><span><b>Coming up</b></span><span id="upCount"></span></div>
+    <ol class="list" id="upcoming"></ol>
+  </section>
+
+  <section class="past" id="pastSec" hidden>
+    <div class="label mono"><span><b>Been there</b></span><span id="pastCount"></span></div>
+    <ol class="list" id="past"></ol>
+  </section>
+
+  <footer class="foot mono"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span><a href="/">Index</a></span></footer>
+</div>
+
+<script>
+const TZ = 'America/New_York';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dateOf = e => new Date(e.date + 'T12:00:00Z');
+const f = (e, o) => dateOf(e).toLocaleDateString('en-US', { timeZone: 'UTC', ...o });
+const time12 = t => { if (!t) return null; let [h, m] = t.split(':').map(Number); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + (m ? ':' + String(m).padStart(2, '0') : '') + ' ' + ap; };
+function todayISO() { return new Date().toLocaleDateString('en-CA', { timeZone: TZ }); }
+function daysUntil(e) { return Math.round((dateOf(e) - new Date(todayISO() + 'T12:00:00Z')) / 864e5); }
+function countText(n) { return n === 0 ? 'Tonight' : n === 1 ? 'Tomorrow' : n + ' days out'; }
+const mapUrl = e => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(e.venue + ', ' + e.address);
+
+function ics(e) {
+  const d = e.date.replace(/-/g, '');
+  const pad = n => String(n).padStart(2, '0');
+  let start, end;
+  if (e.time) {
+    const [h, m] = e.time.split(':').map(Number);
+    const [eh, em] = (e.end || pad((h + 3) % 24) + ':' + pad(m)).split(':').map(Number);
+    start = `DTSTART;TZID=${TZ}:${d}T${pad(h)}${pad(m)}00`;
+    end = `DTEND;TZID=${TZ}:${d}T${pad(eh)}${pad(em)}00`;
+  } else {
+    const nx = new Date(dateOf(e).getTime() + 864e5).toISOString().slice(0, 10).replace(/-/g, '');
+    start = `DTSTART;VALUE=DATE:${d}`; end = `DTEND;VALUE=DATE:${nx}`;
+  }
+  const t = s => String(s || '').replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n');
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//BuGGy Builds//Events//EN', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+    `UID:${e.id}@buggybuilds.org`, `DTSTAMP:${stamp}`, start, end, `SUMMARY:${t(e.title)}`,
+    `LOCATION:${t(e.venue + ', ' + e.address)}`, `DESCRIPTION:${t((e.notes || '') + '\n' + location.origin + '/events/#' + e.id)}`,
+    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+}
+function addToCal(e) {
+  const url = URL.createObjectURL(new Blob([ics(e)], { type: 'text/calendar' }));
+  const a = document.createElement('a'); a.href = url; a.download = e.id + '.ics';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function share(e, toast) {
+  const url = location.origin + '/events/#' + e.id;
+  const text = `${e.title} · ${f(e, { weekday: 'short', month: 'short', day: 'numeric' })}${e.time ? ' · ' + time12(e.time) : ''} · ${e.area || e.venue}`;
+  try {
+    if (navigator.share) { await navigator.share({ title: e.title, text, url }); return; }
+    await navigator.clipboard.writeText(text + '\n' + url); toast.textContent = 'Link copied.';
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;
+    toast.textContent = url;
+  }
+}
+
+function invite(e) {
+  const n = daysUntil(e);
+  const time = time12(e.time);
+  const el = document.createElement('article');
+  el.className = 'invite'; el.id = e.id;
+  el.innerHTML = `
+    <div class="when">
+      <div class="dow">${esc(f(e, { weekday: 'long' }))}</div>
+      <div class="day">${esc(f(e, { day: 'numeric' }))}</div>
+      <div class="side"><div class="mon">${esc(f(e, { month: 'short' }))}</div><span class="count mono">${esc(countText(n))}</span></div>
+    </div>
+    <div class="what">
+      <div class="kind mono">${esc(e.kind || 'Event')}</div>
+      <h2>${esc(e.title)}</h2>
+      <dl class="facts">
+        <dt class="mono">When</dt><dd>${esc(f(e, { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }))} · ${time ? esc(time) + (e.end ? '–' + esc(time12(e.end)) : '') : 'Time TBA'}</dd>
+        <dt class="mono">Where</dt><dd><a href="${esc(e.link || mapUrl(e))}" target="_blank" rel="noopener">${esc(e.venue)}</a></dd>
+        <dt class="mono">Address</dt><dd><a href="${esc(mapUrl(e))}" target="_blank" rel="noopener">${esc(e.address)}</a></dd>
+      </dl>
+      ${e.notes ? `<p class="notes">${esc(e.notes)}</p>` : ''}
+      <div class="btns">
+        <button class="btn primary" data-act="cal">+ Calendar</button>
+        <a class="btn" href="${esc(mapUrl(e))}" target="_blank" rel="noopener">Directions ↗</a>
+        <button class="btn" data-act="share">Share</button>
+      </div>
+      <div class="toast mono" aria-live="polite"></div>
+    </div>`;
+  el.querySelector('[data-act=cal]').onclick = () => addToCal(e);
+  el.querySelector('[data-act=share]').onclick = () => share(e, el.querySelector('.toast'));
+  return el;
+}
+function row(e, i) {
+  const li = document.createElement('li');
+  li.innerHTML = `<a class="row" href="#${esc(e.id)}"><span class="n">${String(i).padStart(2, '0')}</span><span class="d">${esc(f(e, { month: 'short', day: 'numeric' }))}</span><span class="t">${esc(e.title)}</span><span class="w mono">${esc(e.area || e.venue)}</span><span class="a">↘</span></a>`;
+  return li;
+}
+
+let EVENTS = [];
+function render() {
+  const today = todayISO();
+  const up = EVENTS.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
+  const past = EVENTS.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date));
+  const hashId = decodeURIComponent(location.hash.slice(1));
+  const featured = up.find(e => e.id === hashId) || past.find(e => e.id === hashId) || up[0];
+  const next = document.getElementById('next'); next.innerHTML = '';
+  if (featured) next.appendChild(invite(featured));
+  else next.innerHTML = '<div class="empty mono">Nothing on the books yet.</div>';
+  document.getElementById('nextCount').textContent = !featured ? '' : daysUntil(featured) < 0 ? 'Already happened' : f(featured, { weekday: 'short', month: 'short', day: 'numeric' });
+  const rest = up.filter(e => e !== featured);
+  const ul = document.getElementById('upcoming'); ul.innerHTML = '';
+  rest.forEach((e, i) => ul.appendChild(row(e, i + 2)));
+  if (!rest.length) ul.innerHTML = '<li class="empty mono">More plans soon.</li>';
+  document.getElementById('upCount').textContent = rest.length ? rest.length + (rest.length === 1 ? ' more' : ' more') : '';
+  document.getElementById('countTop').textContent = up.length + ' on the books';
+  const pl = document.getElementById('past'); pl.innerHTML = '';
+  past.filter(e => e !== featured).forEach((e, i) => pl.appendChild(row(e, i + 1)));
+  document.getElementById('pastSec').hidden = !pl.children.length;
+  document.getElementById('pastCount').textContent = pl.children.length;
+}
+addEventListener('hashchange', () => { render(); scrollTo({ top: 0, behavior: 'smooth' }); });
+fetch('events.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { EVENTS = d.events || []; render(); })
+  .catch(() => { document.getElementById('next').innerHTML = '<div class="empty mono">Couldn’t load events. Try again in a bit.</div>'; });
+try { document.getElementById('yr').textContent = new Date().getFullYear(); } catch (e) {}
+</script>
+</body>
+</html>

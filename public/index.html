@@ -96,15 +96,16 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 </head>
 <body>
 <div class="wrap" id="top">
-  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 3, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.09</b></span></header>
+  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 7, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.10</b></span></header>
   <h1>BuGGy<br>Builds<i>.</i></h1>
 
   <ol class="list" style="border-top:2px solid var(--line)">
     <li><a class="row" href="/fretfire/" data-peek="fret"><span class="n">01</span><span class="t">Fretfire</span><span class="k mono">Rhythm game<br>Browser · keys / touch</span><span class="s mono"><b></b>Test build</span><span class="a">↗</span><span class="d">A Guitar Hero-style rhythm game you play in the browser. Four lanes, two original songs, or drop in your own MP3. Keys D F J K, or tap the lanes on your phone.</span><span class="thumb" data-art="fret"></span></a></li>
     <li><a class="row" href="/breaker/" data-peek="breaker"><span class="n">02</span><span class="t">Breaker</span><span class="k mono">Group voice<br>Browser · phone</span><span class="s mono"><b></b>Test build</span><span class="a">↗</span><span class="d">Live group voice for the mountain or the course. Everyone on the same channel hears everyone, hands-free with open mic, or push to talk. Share a link and hop on.</span><span class="thumb" data-art="breaker"></span></a></li>
+    <li><a class="row" href="/events/" data-peek="events"><span class="n">03</span><span class="t">Events</span><span class="k mono">Plans &amp; invites<br>Browser · phone</span><span class="s mono"><b></b>Live</span><span class="a">↗</span><span class="d">What’s on the books with the crew. Every plan gets its own invite with the date, the spot and directions. Add it to your calendar or send it on.</span><span class="thumb" data-art="events"></span></a></li>
   </ol>
 
-  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.09</span></footer>
+  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.10</span></footer>
 </div>
 <div class="peek" id="peek"></div>
 
@@ -112,6 +113,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 /* Changelog: newest first. The top entry sets the version shown in the corner.
    Every update to the site adds a new entry here and bumps the version by .01 (v1.01, v1.02, ...). */
 const LOG = [
+  { v: '1.10', date: '2026-11-07', items: ['New: Events. One page for plans with the crew, with an invite for each one.', 'First up: Puttshack in the Seaport, Friday Dec 11.', 'Add any event to your calendar, get directions, or share it with a tap.'] },
   { v: '1.09', date: '2026-11-03', items: ['New: Breaker. Live group voice for snowboarding or golf: everyone on the channel hears everyone at once.', 'Open mic with a wind setting so it only sends when you talk, or push to talk. A big mute button you can hit with gloves.', 'Invite friends with a link. Keeps the screen awake and reconnects on its own after dead zones.'] },
   { v: '1.08', date: '2026-11-03', items: ['Cleared the board down to just Fretfire.', 'The 180, The Spin, Off the Hook and the Cereal Bowlers link are off the site for now.'] },
   { v: '1.07', date: '2026-11-02', items: ['New: Off the Hook. A forecast of how many clients call a brokerage taking part in the Anthropic IPO, day by day from the IOI window through debut.', 'Shows the busiest day, why people call, and how many reps it takes at the peak hour.', 'Quiet, Base and Frenzy presets, and every assumption can be changed.'] },
@@ -129,6 +131,7 @@ const cur = LOG[0];
 document.getElementById('ver').textContent = cur.v; document.getElementById('footVer').textContent = 'v' + cur.v;
 document.getElementById('updatedTop').textContent = fmt(cur.date);
 const ART = {
+  events: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#F1EFEA"/><rect x="70" y="34" width="160" height="160" fill="#FF3B1F"/><rect x="70" y="34" width="160" height="34" fill="#111"/><rect x="98" y="22" width="10" height="26" fill="#111"/><rect x="192" y="22" width="10" height="26" fill="#111"/><text x="150" y="168" text-anchor="middle" font-family="Inter Tight, sans-serif" font-weight="900" font-size="96" letter-spacing="-6" fill="#fff">11</text></svg>`,
   breaker: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#111"/><g fill="none" stroke="#FF3B1F" stroke-width="10" stroke-linecap="round"><path d="M118 82a46 46 0 0 0 0 62"/><path d="M96 62a76 76 0 0 0 0 102"/><path d="M182 82a46 46 0 0 1 0 62"/><path d="M204 62a76 76 0 0 1 0 102"/></g><circle cx="150" cy="113" r="16" fill="#F1EFEA"/></svg>`,
   fret: `<svg viewBox="0 0 300 225"><rect width="300" height="225" fill="#FF3B1F"/><g fill="#111"><rect x="60" width="44" height="225" opacity=".12"/><rect x="104" width="44" height="225" opacity=".2"/><rect x="148" width="44" height="225" opacity=".12"/><rect x="192" width="44" height="225" opacity=".2"/></g><g fill="#fff"><rect x="66" y="30" width="32" height="12" rx="6"/><rect x="154" y="80" width="32" height="12" rx="6"/><rect x="110" y="120" width="32" height="12" rx="6"/><rect x="198" y="50" width="32" height="12" rx="6"/></g><g fill="none" stroke="#111" stroke-width="5"><circle cx="82" cy="188" r="14"/><circle cx="126" cy="188" r="14"/><circle cx="170" cy="188" r="14"/><circle cx="214" cy="188" r="14"/></g></svg>`
 };
