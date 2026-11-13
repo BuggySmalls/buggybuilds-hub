@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Grind · BuGGy Builds</title>
+<title>Gains · BuGGy Builds</title>
 <meta name="description" content="Weight, runs, lifts and food, tracked over time.">
-<meta property="og:title" content="Grind · BuGGy Builds">
+<meta property="og:title" content="Gains · BuGGy Builds">
 <meta property="og:description" content="Weight, runs, lifts and food, tracked over time.">
 <meta name="theme-color" content="#FF3B1F">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
@@ -161,8 +161,8 @@ dialog .acts{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
 </head>
 <body>
 <div class="wrap">
-  <header class="top mono"><span><a class="brand" href="/">BuGGy Builds</a></span><span>04 · Grind</span><span id="streakTop"></span><span class="v"><button id="openSetup">Setup</button> · <a href="/">Index</a></span></header>
-  <h1>Grind<i>.</i></h1>
+  <header class="top mono"><span><a class="brand" href="/">BuGGy Builds</a></span><span>04 · Gains</span><span id="streakTop"></span><span class="v"><button id="openSetup">Setup</button> · <a href="/">Index</a></span></header>
+  <h1>Gains<i>.</i></h1>
 
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="today" aria-selected="true">Today</button>
@@ -205,7 +205,7 @@ dialog .acts{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
 <div class="toast" id="toast"></div>
 
 <script>
-/* Grind: weight, runs, lifts and food over time. Everything lives in localStorage on this device. */
+/* Gains: weight, runs, lifts and food over time. Everything lives in localStorage on this device. */
 const KEY = 'buggybuilds.grind.v1';
 const TZ = 'America/New_York';
 const MI_5K = 3.10686;
@@ -665,12 +665,12 @@ document.getElementById('sSave').onclick = () => {
 };
 document.getElementById('sExport').onclick = () => {
   const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }), a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = 'grind-backup-' + todayISO() + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast('Backup downloaded');
+  a.href = URL.createObjectURL(blob); a.download = 'gains-backup-' + todayISO() + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast('Backup downloaded');
 };
 document.getElementById('sImport').onchange = async e => {
   const file = e.target.files[0]; if (!file) return;
   try { const data = JSON.parse(await file.text()); if (!data || !Array.isArray(data.weights)) throw 0; if (!confirm('Replace what is on this device with the backup?')) return; localStorage.setItem(KEY, JSON.stringify(data)); load(); dlg.close(); toast('Backup loaded'); rerender(); }
-  catch (err) { toast('That file is not a Grind backup'); }
+  catch (err) { toast('That file is not a Gains backup'); }
   e.target.value = '';
 };
 document.getElementById('sWipe').onclick = () => { if (confirm('Erase every weigh-in, run, lift and meal on this device? This cannot be undone.')) { localStorage.removeItem(KEY); load(); dlg.close(); toast('Erased'); rerender(); } };
