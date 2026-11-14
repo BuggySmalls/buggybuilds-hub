@@ -1,5 +1,86 @@
 {
-  "match": "Buggy vs N8 — The 180",
-  "note": "One entry per hole, in the order played. par = 3/4/5, buggy and n8 = strokes. Optional: course and date (on the first hole of each round). Stats, each as {\"buggy\": x, \"n8\": x}: putts (number), fw ('hit' | 'l' | 'r', par 4/5 only), gir (true/false, only when it differs from score − putts ≤ par − 2), sand (bunker holes), lost (lost balls), pen (penalty strokes).",
-  "holes": []
+  "match": "Buggy vs N8 \u2014 The 180",
+  "note": "One entry per hole, in the order played. par = 3/4/5, buggy and n8 = strokes. Optional: course and date (on the first hole of each round). Stats, each as {\"buggy\": x, \"n8\": x}: putts (number), fw ('hit' | 'l' | 'r', par 4/5 only), gir (true/false, only when it differs from score \u2212 putts \u2264 par \u2212 2), sand (bunker holes), lost (lost balls), pen (penalty strokes).",
+  "holes": [
+    {
+      "par": 4,
+      "buggy": 7,
+      "n8": 5,
+      "course": "Kings Crossing",
+      "date": "2026-11-14",
+      "putts": {
+        "buggy": 2
+      },
+      "fw": {
+        "buggy": "r"
+      },
+      "pen": {
+        "buggy": 0
+      }
+    },
+    {
+      "par": 5,
+      "buggy": 6,
+      "n8": 6,
+      "putts": {
+        "buggy": 3
+      },
+      "fw": {
+        "buggy": "hit"
+      },
+      "pen": {
+        "buggy": 0
+      }
+    },
+    {
+      "par": 3,
+      "buggy": 5,
+      "n8": 4,
+      "putts": {
+        "buggy": 2
+      },
+      "pen": {
+        "buggy": 0
+      }
+    },
+    {
+      "par": 5,
+      "buggy": 7,
+      "n8": 9,
+      "putts": {
+        "buggy": 3
+      },
+      "fw": {
+        "buggy": "r"
+      },
+      "pen": {
+        "buggy": 0
+      }
+    },
+    {
+      "par": 3,
+      "buggy": 6,
+      "n8": 4,
+      "putts": {
+        "buggy": 2
+      },
+      "pen": {
+        "buggy": 0
+      }
+    },
+    {
+      "par": 4,
+      "buggy": 6,
+      "n8": 5,
+      "putts": {
+        "buggy": 2
+      },
+      "sand": {
+        "buggy": 1
+      },
+      "pen": {
+        "buggy": 0
+      }
+    }
+  ]
 }
