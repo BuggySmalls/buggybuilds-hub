@@ -4,7 +4,10 @@
 // Durable Object per channel. It is full duplex: anyone can talk at any time, and each
 // audio frame is forwarded to everyone else tagged with the sender's slot number.
 // Audio is never stored; it is forwarded and forgotten.
+// Wiki Race (src/wikirace.js) adds /wikirace/api/* (daily leaderboard) and /wikirace/ws/<CODE> (race rooms).
 import { DurableObject } from "cloudflare:workers";
+import { handleWikiRace, Daily, Race } from "./wikirace.js";
+export { Daily, Race };
 
 const MAX_PEOPLE = 12;
 
@@ -16,6 +19,10 @@ export default {
       if (req.headers.get("Upgrade") !== "websocket") return new Response("Expected a WebSocket", { status: 426 });
       const stub = env.CHANNEL.get(env.CHANNEL.idFromName(m[1].toUpperCase()));
       return stub.fetch(req);
+    }
+    if (url.pathname.startsWith("/wikirace/")) {
+      const res = await handleWikiRace(req, env, url);
+      if (res) return res;
     }
     return env.ASSETS.fetch(req);
   },

@@ -1,7 +1,8 @@
 {
   // buggybuilds.org: everything in ./public is served as-is.
-  // The only server code is src/worker.js: the Breaker voice relay (one Durable Object per channel)
-  // on /breaker/ws/*. Every other path goes straight to the static files.
+  // Server code: src/worker.js, the Breaker voice relay (one Durable Object per channel) on /breaker/ws/*,
+  // and src/wikirace.js, Wiki Race's daily board (/wikirace/api/*) and race rooms (/wikirace/ws/*).
+  // Every other path goes straight to the static files.
   // Separate from the Cereal Bowlers league site (repo BuggySmalls/buggybuilds, Worker "buggybuilds") — never merge them.
   "name": "buggybuilds-hub",
   "main": "src/worker.js",
@@ -10,10 +11,17 @@
     "directory": "./public",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/breaker/ws/*"]
+    "run_worker_first": ["/breaker/ws/*", "/wikirace/api/*", "/wikirace/ws/*"]
   },
   "durable_objects": {
-    "bindings": [{ "name": "CHANNEL", "class_name": "Channel" }]
+    "bindings": [
+      { "name": "CHANNEL", "class_name": "Channel" },
+      { "name": "RACE", "class_name": "Race" },
+      { "name": "DAILY", "class_name": "Daily" }
+    ]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Channel"] }]
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Channel"] },
+    { "tag": "v2", "new_sqlite_classes": ["Race", "Daily"] }
+  ]
 }

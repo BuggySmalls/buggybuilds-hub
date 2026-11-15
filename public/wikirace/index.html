@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wiki Race · BuGGy Builds</title>
+<meta name="description" content="Start on one Wikipedia page, race to another using only the links. Daily challenge, head-to-head and group races.">
+<meta property="og:title" content="Wiki Race">
+<meta property="og:description" content="Start on one Wikipedia page, race to another using only the links.">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{--paper:#F1EFEA; --ink:#111; --muted:#6F6B63; --line:#111; --red:#FF3B1F; --redInk:#D42A10; --soft:#E4E1DA; --card:#FAF9F6; --ok:#1F8A4C; color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--paper:#121211; --ink:#F1EFEA; --muted:#9A958B; --line:#F1EFEA; --soft:#2A2927; --card:#1A1918; --redInk:#FF6A50; --ok:#3CC47A; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font:500 16px/1.45 'Inter Tight',system-ui,sans-serif; min-height:100vh; overflow-x:hidden; -webkit-tap-highlight-color:transparent}
+::selection{background:var(--red); color:#fff}
+a{color:inherit}
+button,input{font:inherit; color:inherit}
+.mono{font:500 12px/1.5 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.04em}
+.wrap{max-width:980px; margin:0 auto; padding:0 18px 60px}
+.top{position:sticky; top:0; z-index:20; background:var(--paper); display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 0; border-bottom:2px solid var(--line)}
+.top a{text-decoration:none} .top a:hover{color:var(--red)}
+.hidden{display:none !important}
+h1{font:900 clamp(56px,14vw,150px)/.85 'Inter Tight',sans-serif; letter-spacing:-.065em; margin:24px 0 18px; margin-left:-.04em}
+h1 i{font-style:normal; color:var(--red)}
+h2{font:700 clamp(28px,5vw,44px)/.95 'Inter Tight',system-ui,sans-serif; letter-spacing:-.04em; margin:0 0 14px}
+h3{font:700 22px/1.1 'Inter Tight',system-ui,sans-serif; letter-spacing:-.02em; margin:0 0 10px}
+.muted{color:var(--muted)}
+.btn{appearance:none; border:2px solid var(--ink); background:var(--ink); color:var(--paper); padding:12px 18px; font-weight:700; font-size:17px; letter-spacing:-.01em; cursor:pointer; border-radius:0; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; text-decoration:none}
+.btn:hover{background:var(--red); border-color:var(--red); color:#fff}
+.btn.red{background:var(--red); border-color:var(--red); color:#fff}
+.btn.red:hover{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+.btn.ghost{background:transparent; color:var(--ink)}
+.btn.ghost:hover{border-color:var(--red); color:var(--red); background:transparent}
+.btn.small{min-height:36px; padding:6px 12px; font-size:14px}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+.btn:disabled:hover{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+input.field{width:100%; border:2px solid var(--ink); background:var(--card); padding:11px 12px; font-size:17px; border-radius:0; min-height:48px}
+input.field:focus{outline:none; border-color:var(--red)}
+label.lab{display:block; margin:0 0 6px}
+.err{color:var(--redInk); min-height:1.4em; margin:8px 0 0; font-size:15px}
+
+/* daily card */
+.daily{border:2px solid var(--line); background:var(--card); padding:20px; margin:0 0 24px; position:relative}
+.daily .tag{display:flex; justify-content:space-between; gap:10px; color:var(--muted)}
+.pair{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin:14px 0 16px; font:700 clamp(30px,6vw,54px)/1 'Inter Tight',system-ui,sans-serif; letter-spacing:-.04em}
+.pair .ar{color:var(--red)}
+.pair span{overflow-wrap:anywhere}
+.daily .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.leader{margin-left:auto; text-align:right}
+.leader b{font:700 26px/1 'Inter Tight',system-ui,sans-serif; letter-spacing:-.02em; display:block}
+.done-note{border-top:1px solid var(--soft); margin-top:16px; padding-top:14px}
+.modes{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-top:2px solid var(--line); border-bottom:2px solid var(--line); margin-bottom:24px}
+.mode{padding:18px 16px 18px 0; display:flex; flex-direction:column; gap:10px}
+.mode + .mode{border-left:1px solid var(--line); padding-left:16px}
+.mode p{margin:0; color:var(--muted); font-size:15px; flex:1}
+.mode .join{display:flex; gap:8px}
+.mode .join input{text-transform:uppercase; letter-spacing:.2em; font-family:'JetBrains Mono',monospace; min-width:0}
+.namebar{display:flex; gap:10px; align-items:end; margin:0 0 24px}
+.namebar > div{flex:1}
+.board{width:100%; border-collapse:collapse}
+.board td,.board th{text-align:left; padding:10px 6px; border-bottom:1px solid var(--soft); vertical-align:baseline}
+.board th{font:500 11px 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); border-bottom:2px solid var(--line)}
+.board td.num{font:500 13px 'JetBrains Mono',monospace; text-align:right; white-space:nowrap}
+.board th.num{text-align:right}
+.board tr.you td{background:color-mix(in srgb, var(--red) 9%, transparent)}
+.board .pl{font:500 13px 'JetBrains Mono',monospace; color:var(--muted); width:28px}
+.streak{color:var(--redInk); font:500 12px 'JetBrains Mono',monospace; white-space:nowrap}
+.sec{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin:30px 0 10px; border-bottom:2px solid var(--line); padding-bottom:8px}
+.sec h3{margin:0}
+.how{color:var(--muted); font-size:15px; columns:2; column-gap:28px; margin:0; padding-left:18px}
+.how li{margin:0 0 6px; break-inside:avoid}
+
+/* lobby */
+.code{font:900 clamp(64px,18vw,140px)/.9 'JetBrains Mono',monospace; letter-spacing:.08em; margin:6px 0 12px}
+.lobbygrid{display:grid; grid-template-columns:1.1fr 1fr; gap:28px; align-items:start}
+.plist{list-style:none; margin:0; padding:0}
+.plist li{display:flex; gap:10px; align-items:center; padding:12px 0; border-bottom:1px solid var(--soft)}
+.plist .nm{font-weight:700; font-size:19px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pill{font:500 11px 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.05em; padding:3px 7px; border:1px solid currentColor; white-space:nowrap}
+.pill.ok{color:var(--ok)} .pill.red{color:var(--redInk)} .pill.mut{color:var(--muted)}
+.off{opacity:.45}
+.setpair{border:2px solid var(--line); padding:16px; background:var(--card)}
+.setpair .two{display:grid; grid-template-columns:1fr; gap:10px}
+.pairshow{font:700 26px/1.1 'Inter Tight',system-ui,sans-serif; letter-spacing:-.02em; margin:4px 0 0}
+.pairshow .ar{color:var(--red)}
+.actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+
+/* race */
+.racebar{position:sticky; top:0; z-index:30; background:var(--ink); color:var(--paper); margin:0 -18px; padding:10px 18px 8px}
+.racebar .l1{display:flex; align-items:center; gap:12px}
+.racebar .goal{flex:1; min-width:0}
+.racebar .goal small{display:block; color:#9A958B}
+.racebar .goal b{display:block; font:700 20px/1.1 'Inter Tight',system-ui,sans-serif; letter-spacing:-.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff}
+.racebar .stat{text-align:right; font:500 20px/1 'JetBrains Mono',monospace; color:#fff}
+.racebar .stat small{display:block; font-size:10px; color:#9A958B; letter-spacing:.05em}
+.racebar .gu{background:transparent; border:1px solid #6F6B63; color:#C9C5BC; padding:6px 10px; font:500 11px 'JetBrains Mono',monospace; text-transform:uppercase; cursor:pointer; min-height:34px}
+.racebar .gu.arm{background:var(--red); border-color:var(--red); color:#fff}
+.crumbs{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-top:8px; padding-bottom:2px; font:500 12px 'JetBrains Mono',monospace; color:#9A958B; white-space:nowrap}
+.crumbs::-webkit-scrollbar{display:none}
+.crumbs span:last-child{color:#fff}
+.loadbar{position:absolute; left:0; bottom:0; height:3px; background:var(--red); width:0; transition:width .4s}
+.loadbar.on{width:85%; transition:width 6s cubic-bezier(.1,.7,.1,1)}
+.toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--red); color:#fff; padding:10px 16px; font-weight:700; opacity:0; transition:.25s; z-index:60; pointer-events:none; max-width:90vw; text-align:center}
+.toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
+
+/* the article */
+.art{max-width:760px; margin:18px auto 80px; font:400 17px/1.6 Georgia,'Iowan Old Style','Times New Roman',serif; overflow-wrap:break-word}
+.art h1.at{font:700 clamp(32px,6vw,46px)/1.05 'Inter Tight',sans-serif; letter-spacing:-.03em; margin:8px 0 14px; border-bottom:1px solid var(--soft); padding-bottom:10px}
+.art h2{font:700 26px/1.2 'Inter Tight',sans-serif; letter-spacing:-.02em; margin:28px 0 8px; border-bottom:1px solid var(--soft); padding-bottom:4px}
+.art h3,.art h4{font:700 19px/1.25 'Inter Tight',sans-serif; margin:20px 0 6px}
+.art a{color:var(--muted); text-decoration:none}
+.art a.wl{color:var(--redInk); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:2px; cursor:pointer}
+.art a.wl:hover{background:color-mix(in srgb, var(--red) 14%, transparent)}
+.art a.wl.goal{background:var(--red); color:#fff; text-decoration:none; padding:0 3px}
+.art img{max-width:100%; height:auto}
+.art table{display:block; overflow-x:auto; max-width:100%; border-collapse:collapse; font:400 14px/1.4 'Inter Tight',sans-serif; margin:12px 0}
+.art td,.art th{border:1px solid var(--soft); padding:4px 6px; vertical-align:top}
+.art .infobox{float:right; clear:right; width:300px; margin:0 0 14px 18px; background:var(--card)}
+.art figure{margin:10px 0 14px 18px; float:right; clear:right; max-width:260px; font:400 13px/1.35 'Inter Tight',sans-serif; color:var(--muted)}
+.art figure img{display:block}
+.art figcaption{margin-top:4px}
+.art .hatnote,.art .dablink{font-style:italic; color:var(--muted); font-size:15px; margin:0 0 8px}
+.art .mw-empty-elt,.art .noprint.sistersitebox,.art .mw-editsection,.art .ambox,.art .metadata,.art link,.art style{display:none}
+.art sup{font-size:.7em; line-height:0}
+.art ol.references,.art .reflist{font-size:14px}
+.art blockquote{margin:12px 0; padding-left:14px; border-left:3px solid var(--soft)}
+.art pre,.art code{white-space:pre-wrap; font-size:14px}
+.art section{clear:none}
+.art .navbox{font-size:13px}
+.art .err{font-family:'Inter Tight',sans-serif}
+@media (max-width:720px){
+  .art .infobox{float:none; width:100%; margin:12px 0}
+  .art figure{float:none; margin:12px 0; max-width:100%}
+}
+
+/* countdown */
+.count{position:fixed; inset:0; background:var(--ink); color:var(--paper); z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px}
+.count .n{font:900 clamp(140px,40vw,320px)/.8 'Inter Tight',system-ui,sans-serif; letter-spacing:-.06em; color:var(--red)}
+.count .p{font:700 clamp(24px,5vw,40px)/1.1 'Inter Tight',system-ui,sans-serif; letter-spacing:-.03em; margin-top:24px; max-width:900px}
+.count .p .ar{color:var(--red)}
+
+/* results */
+.res{list-style:none; margin:0; padding:0; border-top:2px solid var(--line)}
+.res > li{border-bottom:1px solid var(--line)}
+.res .head{display:grid; grid-template-columns:44px 1fr auto auto 24px; gap:12px; align-items:baseline; padding:14px 0; cursor:pointer; width:100%; background:none; border:0; text-align:left}
+.res .place{font:900 30px/1 'Inter Tight',system-ui,sans-serif; letter-spacing:-.04em}
+.res li:first-child .place{color:var(--red)}
+.res .who{font:700 22px/1.1 'Inter Tight',system-ui,sans-serif; letter-spacing:-.02em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.res .tm{font:500 18px 'JetBrains Mono',monospace}
+.res .cl{font:500 13px 'JetBrains Mono',monospace; color:var(--muted)}
+.res .chev{transition:transform .2s; font-weight:700}
+.res li.open .chev{transform:rotate(90deg)}
+.res .body{display:none; padding:0 0 18px}
+.res li.open .body{display:block}
+.steps{list-style:none; margin:0; padding:0 0 0 14px; border-left:2px solid var(--soft); margin-left:14px}
+.steps li{position:relative; padding:5px 0 5px 14px; display:grid; grid-template-columns:1fr 64px; gap:4px 10px; align-items:center}
+.steps li::before{content:''; position:absolute; left:-21px; top:12px; width:10px; height:10px; border-radius:50%; background:var(--paper); border:2px solid var(--ink)}
+.steps li.fin::before{background:var(--red); border-color:var(--red)}
+.steps li.dnf::before{border-color:var(--muted); border-style:dashed}
+.steps a{font-weight:700; text-decoration:none; overflow-wrap:anywhere}
+.steps a:hover{color:var(--red)}
+.steps .t{font:500 13px 'JetBrains Mono',monospace; text-align:right}
+.steps .bar{grid-column:1 / 3; height:5px; background:var(--soft); position:relative}
+.steps .bar i{position:absolute; left:0; top:0; bottom:0; background:var(--ink)}
+.steps li.slow .bar i{background:var(--red)}
+.flag{font:500 10px 'JetBrains Mono',monospace; text-transform:uppercase; color:#fff; background:var(--red); padding:1px 5px; margin-left:6px; vertical-align:2px; white-space:nowrap}
+.short{border:2px solid var(--line); padding:16px; margin-top:24px; background:var(--card)}
+.short .chain{display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline; font:700 20px/1.25 'Inter Tight',system-ui,sans-serif; letter-spacing:-.02em; margin-top:10px}
+.short .chain a{text-decoration:none} .short .chain a:hover{color:var(--red)}
+.short .chain .ar{color:var(--red)}
+.big-result{font:900 clamp(60px,15vw,120px)/.85 'Inter Tight',system-ui,sans-serif; letter-spacing:-.06em; margin:8px 0 6px}
+.statusgrid{list-style:none; margin:16px 0 0; padding:0; border-top:2px solid var(--line)}
+.statusgrid li{display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--soft); font-weight:700}
+@media (max-width:720px){
+  .modes{grid-template-columns:1fr}
+  .mode{padding:16px 0} .mode + .mode{border-left:0; border-top:1px solid var(--line); padding-left:0}
+  .lobbygrid{grid-template-columns:1fr}
+  .how{columns:1}
+  .leader{margin-left:0; text-align:left; width:100%}
+  .res .head{grid-template-columns:34px 1fr auto 18px} .res .cl{display:none}
+  .board .hide-s{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top mono" id="topbar"><a href="/">BuGGy Builds</a><a href="/wikirace/" id="homeLink">Wiki Race</a></header>
+
+  <!-- HOME -->
+  <main id="vHome">
+    <h1>Wiki<br>Race<i>.</i></h1>
+    <div class="daily" id="daily">
+      <div class="tag mono"><span id="dTag">Daily challenge</span><span id="dDate"></span></div>
+      <div class="pair" id="dPair"><span>Loading…</span></div>
+      <div class="row">
+        <button class="btn red" id="dPlay">Play today’s race</button>
+        <div class="leader mono" id="dLeader"></div>
+      </div>
+      <div class="done-note hidden" id="dDone"></div>
+    </div>
+
+    <div class="namebar">
+      <div><label class="lab mono" for="name">Your name</label><input class="field" id="name" maxlength="16" placeholder="Type your name" autocomplete="nickname"></div>
+    </div>
+    <p class="err" id="homeErr"></p>
+
+    <div class="modes">
+      <div class="mode"><h3>Head-to-head</h3><p>You and one other. Send the link, ready up, and race the same pages at the same moment.</p><button class="btn" id="mkDuel">Start a head-to-head</button></div>
+      <div class="mode"><h3>Group race</h3><p>The whole crew in one room. The host picks the pages or spins random ones.</p><button class="btn" id="mkGroup">Start a group race</button></div>
+      <div class="mode"><h3>Join a room</h3><p>Got a four-letter code? Type it in.</p><div class="join"><input class="field" id="joinCode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off"><button class="btn" id="joinBtn">Join</button></div></div>
+    </div>
+
+    <div class="sec"><h3>Today’s board</h3><a class="mono" href="#" id="yday">Yesterday’s race →</a></div>
+    <table class="board" id="board"><tbody><tr><td class="muted">Loading…</td></tr></tbody></table>
+
+    <div class="sec"><h3>How it works</h3></div>
+    <ul class="how">
+      <li>Everyone starts on the same Wikipedia page. Get to the target page using only the links in the article.</li>
+      <li>No search, no back button, no typing addresses. Ctrl+F on the page is fair game.</li>
+      <li>Fastest time wins. Fewer clicks breaks a tie.</li>
+      <li>Nobody sees anyone else’s route until everyone’s done. Then you get every path, page by page, with how long each person sat on each page.</li>
+      <li>The daily race is one go per name per day.</li>
+      <li>The shortest route stays hidden until you hit the button.</li>
+    </ul>
+  </main>
+
+  <!-- LOBBY -->
+  <main id="vLobby" class="hidden">
+    <div class="mono muted" style="margin-top:22px" id="lKind">Room</div>
+    <div class="code" id="lCode">····</div>
+    <div class="actions" style="margin:0 0 26px"><button class="btn" id="lShare">Send invite link</button><button class="btn ghost" id="lLeave">Leave</button></div>
+    <div class="lobbygrid">
+      <div>
+        <div class="sec" style="margin-top:0"><h3>Racers</h3><span class="mono muted" id="lCount"></span></div>
+        <ul class="plist" id="lPlayers"></ul>
+        <div class="actions" id="lReadyWrap"><button class="btn red" id="lReady">I’m ready</button></div>
+      </div>
+      <div>
+        <div class="setpair">
+          <div class="mono muted">The race</div>
+          <div class="pairshow" id="lPair">Host is picking the pages…</div>
+          <div id="lHost" class="hidden" style="margin-top:16px">
+            <div class="two">
+              <div><label class="lab mono" for="pStart">Start page</label><input class="field" id="pStart" placeholder="e.g. Toaster"></div>
+              <div><label class="lab mono" for="pTarget">Target page</label><input class="field" id="pTarget" placeholder="e.g. Genghis Khan"></div>
+            </div>
+            <p class="err" id="pErr"></p>
+            <div class="actions" style="margin-top:4px"><button class="btn ghost" id="pSet">Use these</button><button class="btn ghost" id="pRandom">Random pages</button></div>
+            <div class="actions"><button class="btn red" id="lGo" disabled>Start the race</button></div>
+            <p class="mono muted" id="lGoNote" style="margin:10px 0 0"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- RACE -->
+  <main id="vRace" class="hidden">
+    <div class="racebar" id="racebar">
+      <div class="l1">
+        <div class="goal"><small class="mono">Get to</small><b id="rGoal">—</b></div>
+        <div class="stat"><span id="rTime">0:00</span><small>TIME</small></div>
+        <div class="stat"><span id="rClicks">0</span><small>CLICKS</small></div>
+        <button class="gu" id="rGiveUp">Give up</button>
+      </div>
+      <div class="crumbs" id="rCrumbs"></div>
+      <div class="loadbar" id="loadbar"></div>
+    </div>
+    <article class="art" id="art"></article>
+  </main>
+
+  <!-- WAITING (finished, others still racing) -->
+  <main id="vWait" class="hidden">
+    <div class="mono muted" style="margin-top:26px" id="wKind">You made it</div>
+    <div class="big-result" id="wTime">0:00</div>
+    <div class="mono" id="wSub"></div>
+    <div class="sec"><h3 id="wHead">Waiting on the others</h3></div>
+    <p class="muted" style="margin:0">Routes stay hidden until everyone’s finished or given up.</p>
+    <ul class="statusgrid" id="wList"></ul>
+    <div class="actions"><button class="btn ghost hidden" id="wEnd">End the race now</button></div>
+  </main>
+
+  <!-- RESULTS -->
+  <main id="vResults" class="hidden">
+    <div class="mono muted" style="margin-top:26px" id="xKind">Results</div>
+    <h2 id="xPair" style="margin-top:8px"></h2>
+    <p class="mono muted" id="xSub" style="margin:0 0 16px"></p>
+    <ul class="res" id="xList"></ul>
+    <div class="short" id="xShort">
+      <div class="mono muted">Shortest route</div>
+      <div id="xShortBody"><button class="btn" id="xShortBtn" style="margin-top:10px">View shortest route</button><span class="mono muted" id="xShortNote" style="display:block;margin-top:8px"></span></div>
+    </div>
+    <div class="actions" id="xActions"></div>
+  </main>
+</div>
+
+<div class="count hidden" id="count"><div class="mono" style="color:#9A958B" id="cLabel">Get ready</div><div class="n" id="cNum">3</div><div class="p" id="cPair"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ============================================================ basics */
+const $ = (id) => document.getElementById(id);
+const WP = 'https://en.wikipedia.org';
+const KEY = 'buggybuilds.wikirace.v1';
+const store = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } })();
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch {} };
+if (!store.cid) { store.cid = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)); save(); }
+store.daily = store.daily || {};
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = (t) => { let s = String(t || ''); try { s = decodeURIComponent(s); } catch {} s = s.replace(/_/g, ' ').replace(/\s+/g, ' ').trim(); return s.charAt(0).toUpperCase() + s.slice(1); };
+const enc = (t) => encodeURIComponent(norm(t).replace(/ /g, '_'));
+const wikiUrl = (t) => `${WP}/wiki/${enc(t)}`;
+function fmt(ms) {
+  if (ms == null || !isFinite(ms)) return '—';
+  ms = Math.max(0, ms);
+  const s = ms / 1000, m = Math.floor(s / 60), r = s - m * 60;
+  if (m >= 60) return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}:${String(Math.floor(r)).padStart(2, '0')}`;
+  return `${m}:${r < 10 ? '0' : ''}${r.toFixed(1)}`;
+}
+const fmtShort = (ms) => { const s = Math.round(Math.max(0, ms) / 1000); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+const views = ['vHome', 'vLobby', 'vRace', 'vWait', 'vResults'];
+function show(v) { views.forEach((x) => $(x).classList.toggle('hidden', x !== v)); $('topbar').classList.toggle('hidden', v === 'vRace'); window.scrollTo(0, 0); }
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2400); }
+async function api(path, body) {
+  const r = await fetch('/wikirace/api/' + path, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Something went wrong.');
+  return j;
+}
+const nameInput = $('name');
+nameInput.value = store.name || '';
+nameInput.addEventListener('input', () => { store.name = nameInput.value.replace(/\s+/g, ' ').trim().slice(0, 16); save(); });
+function needName() {
+  const n = (nameInput.value || '').replace(/\s+/g, ' ').trim();
+  if (!n) { $('homeErr').textContent = 'Type your name first.'; show('vHome'); nameInput.focus(); return null; }
+  $('homeErr').textContent = ''; store.name = n.slice(0, 16); save(); return store.name;
+}
+function arrowPair(a, b) { return `<span>${esc(a)}</span> <span class="ar">→</span> <span>${esc(b)}</span>`; }
+
+/* ============================================================ Wikipedia */
+const NS = /^(File|Image|Media|Category|Help|Wikipedia|WP|Template|Portal|Special|Talk|User|Draft|Module|MediaWiki|TimedText|Book|Education Program|Gadget|Topic|Wikt|Wiktionary|Commons|Meta|Species|Wikiquote|Wikisource|Wikinews|Wikivoyage|Wikibooks|Wikiversity|Wikidata|Q|D|S|N|B|V|Mw|Foundation|Outreach|Phab|Wmf)( talk)?:/i;
+const pageCache = new Map();
+async function fetchArticle(title) {
+  const key = norm(title);
+  if (pageCache.has(key)) return pageCache.get(key);
+  const p = (async () => {
+    let t = key;
+    // Fast path: Wikipedia's cached page HTML. Redirect pages are followed by hand (max 3 hops).
+    try {
+      for (let hop = 0; hop < 3; hop++) {
+        const r = await fetch(`${WP}/api/rest_v1/page/html/${enc(t)}?redirect=false`);
+        if (r.status === 404) throw Object.assign(new Error('That page doesn’t exist.'), { gone: true });
+        if (!r.ok) throw new Error('rest ' + r.status);
+        const doc = new DOMParser().parseFromString(await r.text(), 'text/html');
+        const red = doc.querySelector('link[rel="mw:PageProp/redirect"]');
+        if (red) { t = norm((red.getAttribute('href') || '').replace(/^\.\//, '').split('#')[0]); continue; }
+        let final = t;
+        const ver = doc.querySelector('link[rel="dc:isVersionOf"]');
+        if (ver) { const h = ver.getAttribute('href') || ''; const i = h.indexOf('/wiki/'); if (i >= 0) final = norm(h.slice(i + 6)); }
+        return { title: final, doc };
+      }
+    } catch (e) { if (e.gone) throw e; }
+    // Fallback: the Action API's parser output (slower, always there).
+    const j = await (await fetch(`${WP}/w/api.php?action=parse&format=json&formatversion=2&origin=*&redirects=1&prop=text&disableeditsection=1&disabletoc=1&page=${encodeURIComponent(key)}`)).json().catch(() => null);
+    if (!j) throw new Error('Wikipedia didn’t answer. Try again.');
+    if (j.error) throw new Error(j.error.code === 'missingtitle' ? 'That page doesn’t exist.' : 'Wikipedia didn’t answer. Try again.');
+    const doc = new DOMParser().parseFromString(`<!doctype html><html><body>${j.parse.text}</body></html>`, 'text/html');
+    return { title: norm(j.parse.title), doc };
+  })();
+  pageCache.set(key, p);
+  p.catch(() => pageCache.delete(key));
+  return p;
+}
+async function resolveTitle(t) {
+  const r = await fetch(`${WP}/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&titles=${encodeURIComponent(norm(t))}`);
+  const j = r.ok ? await r.json().catch(() => null) : null;
+  const pg = j && j.query && j.query.pages && j.query.pages[0];
+  if (!pg) throw new Error('Wikipedia didn’t answer. Try again.');
+  if (pg.missing || pg.invalid || pg.ns !== 0) throw new Error(`Couldn’t find a Wikipedia page called “${norm(t)}”.`);
+  return norm(pg.title);
+}
+function renderArticle(doc, title, targetN) {
+  const body = doc.body.cloneNode(true);
+  body.querySelectorAll('script,style,link,meta,.mw-editsection,[typeof~="mw:Extension/templatestyles"]').forEach((e) => e.remove());
+  body.querySelectorAll('img').forEach((img) => {
+    const s = img.getAttribute('src'); if (s && s.startsWith('//')) img.setAttribute('src', 'https:' + s);
+    const ss = img.getAttribute('srcset'); if (ss) img.setAttribute('srcset', ss.replace(/(^|,\s*)\/\//g, '$1https://'));
+    img.setAttribute('loading', 'lazy');
+    img.removeAttribute('resource');
+  });
+  body.querySelectorAll('[style]').forEach((e) => { if (/float|width/.test(e.getAttribute('style'))) e.style.removeProperty('width'); });
+  const unlink = (a) => { const s = doc.createElement('span'); while (a.firstChild) s.appendChild(a.firstChild); a.replaceWith(s); };
+  body.querySelectorAll('a').forEach((a) => {
+    const href = a.getAttribute('href') || '';
+    if (href.startsWith('#')) { a.dataset.anchor = href.slice(1); return; }
+    const lm = href.match(/^(?:\.\/|\/wiki\/|(?:https?:)?\/\/en\.wikipedia\.org\/wiki\/)(.+)$/);
+    if (lm) {
+      const raw = lm[1];
+      const [pathPart, frag] = raw.split('#');
+      const t = norm(pathPart.split('?')[0]);
+      if (!t) { unlink(a); return; }
+      if (t === title) { if (frag) { a.dataset.anchor = frag; a.setAttribute('href', '#'); } else unlink(a); return; }
+      if (NS.test(t) || a.classList.contains('new') || /[?&](action|redlink)=/.test(raw)) { unlink(a); return; }
+      if (a.closest('figure') && a.querySelector('img')) { unlink(a); return; }
+      a.dataset.t = t;
+      a.className = 'wl' + (targetN && t === targetN ? ' goal' : '');
+      a.setAttribute('href', '#');
+      a.removeAttribute('title'); a.removeAttribute('rel'); a.removeAttribute('id');
+      return;
+    }
+    unlink(a);
+  });
+  const art = $('art');
+  art.innerHTML = '';
+  const h = document.createElement('h1'); h.className = 'at'; h.textContent = title; art.appendChild(h);
+  while (body.firstChild) art.appendChild(document.importNode(body.firstChild, true)), body.removeChild(body.firstChild);
+}
+$('art').addEventListener('click', (e) => {
+  const a = e.target.closest('a'); if (!a) return;
+  e.preventDefault();
+  if (a.dataset.t) { go(a.dataset.t); return; }
+  if (a.dataset.anchor) {
+    let id = a.dataset.anchor; try { id = decodeURIComponent(id); } catch {}
+    const el = document.getElementById(id) || $('art').querySelector(`[name="${CSS.escape(id)}"]`);
+    if (el) { const y = el.getBoundingClientRect().top + scrollY - $('racebar').offsetHeight - 12; scrollTo({ top: y, behavior: 'smooth' }); }
+  }
+});
+
+/* ============================================================ the race engine */
+let R = null; // current run
+let tick = null;
+function elapsed() { return R ? (R.done ? R.ms : Date.now() + (R.offset || 0) - R.startAt) : 0; }
+function crumbs() {
+  $('rCrumbs').innerHTML = R.path.map((s, i) => `${i ? '<span>→</span>' : ''}<span>${esc(s.t)}</span>`).join('');
+  const c = $('rCrumbs'); c.scrollLeft = c.scrollWidth;
+  $('rClicks').textContent = Math.max(0, R.path.length - 1);
+}
+function startTicker() { clearInterval(tick); tick = setInterval(() => { if (R && !R.done) $('rTime').textContent = fmtShort(elapsed()); }, 250); }
+
+// Count down to `startAt` (in server time), loading the start page meanwhile, then go.
+async function beginRun(opts) {
+  // opts: {mode, start, target, startAt, offset, path?, label}
+  R = { mode: opts.mode, start: opts.start, target: opts.target, targetN: norm(opts.target), startAt: opts.startAt, offset: opts.offset || 0, path: opts.path || [], done: false, loading: false, token: opts.token, date: opts.date };
+  persistRun();
+  $('rGoal').textContent = R.target;
+  $('rTime').textContent = '0:00'; $('rClicks').textContent = '0';
+  armGiveUp(false);
+  // Resolve the target's real title in the background (redirects like "Napoleon Bonaparte").
+  resolveTitle(R.target).then((t) => { if (R && R.target === opts.target) { R.targetN = t; markGoal(); } }).catch(() => {});
+  const resuming = R.path.length > 0;
+  const firstTitle = resuming ? R.path[R.path.length - 1].t : R.start;
+  const loading = fetchArticle(firstTitle).catch((e) => e);
+  if (!resuming) {
+    $('count').classList.remove('hidden');
+    $('cPair').innerHTML = arrowPair(R.start, R.target);
+    $('cLabel').textContent = opts.label || 'Get ready';
+    await new Promise((res) => {
+      const f = () => {
+        const left = R.startAt - (Date.now() + R.offset);
+        if (left <= 0) return res();
+        $('cNum').textContent = Math.ceil(left / 1000);
+        setTimeout(f, Math.min(100, left));
+      };
+      f();
+    });
+    $('count').classList.add('hidden');
+  }
+  show('vRace');
+  trapBack();
+  startTicker();
+  let page = await loading;
+  if (page instanceof Error) {
+    try { page = await fetchArticle(firstTitle); } catch (e) { $('art').innerHTML = `<p class="err">${esc(e.message)} <button class="btn small" onclick="location.reload()">Reload</button></p>`; return; }
+  }
+  if (!resuming) R.path.push({ t: page.title, at: 0 });
+  renderArticle(page.doc, page.title, R.targetN);
+  crumbs();
+  persistRun();
+  sendStep();
+}
+function markGoal() { $('art').querySelectorAll('a.wl').forEach((a) => a.classList.toggle('goal', a.dataset.t === R.targetN)); }
+
+async function go(title) {
+  if (!R || R.done || R.loading) return;
+  const at = Math.round(elapsed());
+  const t = norm(title);
+  if (t === R.targetN || t === norm(R.target)) { R.path.push({ t: R.targetN, at }); finishRun('done', at); return; }
+  R.loading = true; $('loadbar').classList.add('on');
+  try {
+    const page = await fetchArticle(t);
+    if (!R || R.done) return;
+    R.path.push({ t: page.title, at });
+    if (page.title === R.targetN) { finishRun('done', at); return; }
+    renderArticle(page.doc, page.title, R.targetN);
+    window.scrollTo(0, 0);
+    crumbs();
+    persistRun();
+    sendStep();
+  } catch (e) {
+    toast(e.message || 'Couldn’t load that page. Try another link.');
+  } finally {
+    if (R) R.loading = false;
+    $('loadbar').classList.remove('on');
+  }
+}
+let gaT;
+function armGiveUp(on) { const b = $('rGiveUp'); b.classList.toggle('arm', on); b.textContent = on ? 'Sure? Tap again' : 'Give up'; clearTimeout(gaT); if (on) gaT = setTimeout(() => armGiveUp(false), 3000); }
+$('rGiveUp').addEventListener('click', () => {
+  if (!R || R.done) return;
+  if (!$('rGiveUp').classList.contains('arm')) return armGiveUp(true);
+  armGiveUp(false); finishRun('dnf', Math.round(elapsed()));
+});
+function persistRun() {
+  if (!R) return;
+  store.run = { mode: R.mode, start: R.start, target: R.target, startAt: R.startAt, path: R.path, token: R.token, date: R.date, code: R.mode === 'room' ? room.code : null, round: R.round };
+  save();
+}
+function clearRun() { delete store.run; save(); }
+let stepT;
+function sendStep() {
+  clearTimeout(stepT);
+  stepT = setTimeout(() => {
+    if (!R || R.done) return;
+    if (R.mode === 'daily') api('daily/step', { token: R.token, date: R.date, path: R.path }).catch(() => {});
+    else wsSend({ t: 'step', path: R.path });
+  }, 300);
+}
+async function finishRun(status, ms) {
+  R.done = true; R.ms = ms; R.status = status;
+  clearInterval(tick); clearRun(); releaseBack();
+  if (R.mode === 'daily') {
+    show('vWait'); waitScreen(status, ms, R.path.length - 1, true);
+    try {
+      const b = await sendRetry(() => api('daily/finish', { token: R.token, date: R.date, path: R.path, ms, status }));
+      store.daily[R.date] = { token: R.token, done: true }; save();
+      showDailyResults(b);
+    } catch (e) { $('wSub').textContent = 'Couldn’t save your time: ' + e.message; }
+  } else {
+    wsSend({ t: status === 'done' ? 'finish' : 'giveup', path: R.path, ms });
+    show('vWait'); waitScreen(status, ms, R.path.length - 1, false);
+    renderRoom();
+  }
+}
+async function sendRetry(fn) { let err; for (let i = 0; i < 4; i++) { try { return await fn(); } catch (e) { err = e; await new Promise((r) => setTimeout(r, 800 * (i + 1))); } } throw err; }
+function waitScreen(status, ms, clicks, daily) {
+  $('wKind').textContent = status === 'done' ? 'You made it' : 'You gave up';
+  $('wTime').textContent = status === 'done' ? fmt(ms) : 'DNF';
+  $('wSub').textContent = status === 'done' ? `${clicks} click${clicks === 1 ? '' : 's'}` : `${clicks} click${clicks === 1 ? '' : 's'} in ${fmt(ms)}`;
+  $('wHead').textContent = daily ? 'Saving your run…' : 'Waiting on the others';
+  $('wList').innerHTML = '';
+}
+// No back button: keep a spare history entry while racing.
+let trapped = false;
+function trapBack() { if (trapped) return; trapped = true; history.pushState({ wr: 1 }, ''); }
+function releaseBack() { trapped = false; }
+addEventListener('popstate', () => { if (R && !R.done && trapped) { history.pushState({ wr: 1 }, ''); toast('No back button in Wiki Race.'); } });
+addEventListener('beforeunload', (e) => { if (R && !R.done && R.path.length) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ============================================================ daily */
+let D = null; // last daily board
+const todayToken = () => (D && store.daily[D.today] && store.daily[D.today].token) || '';
+async function loadDaily(date) {
+  const q = new URLSearchParams();
+  if (date) q.set('date', date);
+  const t = date ? (store.daily[date] && store.daily[date].token) : (store.daily[todayKey()] && store.daily[todayKey()].token);
+  if (t) q.set('token', t);
+  return api('daily' + (q.toString() ? '?' + q : ''));
+}
+function todayKey() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+const dateLabel = (d) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+async function refreshHome() {
+  try { D = await loadDaily(); } catch (e) { $('dPair').innerHTML = '<span class="muted">Couldn’t load today’s race.</span>'; return; }
+  $('dTag').textContent = `Daily challenge #${D.n}`;
+  $('dDate').textContent = dateLabel(D.today);
+  $('dPair').innerHTML = arrowPair(D.start, D.target);
+  const done = D.board.filter((b) => b.status === 'done');
+  $('dLeader').innerHTML = done.length ? `Time to beat · ${esc(done[0].name)}<b>${fmt(done[0].ms)}</b>${done[0].clicks} clicks` : 'Nobody’s on the board yet';
+  const you = D.you;
+  const play = $('dPlay');
+  $('dDone').classList.add('hidden');
+  if (you && you.status === 'playing' && store.run && store.run.mode === 'daily' && store.run.date === D.today) {
+    play.textContent = 'Back to your run'; play.onclick = resumeDaily;
+  } else if (you && you.status !== 'playing') {
+    play.textContent = 'See everyone’s routes'; play.onclick = () => showDailyResults(D);
+    const place = D.board.findIndex((b) => b.you) + 1;
+    $('dDone').classList.remove('hidden');
+    $('dDone').innerHTML = you.status === 'done' ? `<b>You:</b> ${fmt(you.ms)} · ${you.clicks} clicks · #${place} of ${D.board.length}. Next race tomorrow.` : `<b>You:</b> gave up today. Next race tomorrow.`;
+  } else {
+    play.textContent = 'Play today’s race'; play.onclick = playDaily;
+  }
+  renderBoard($('board'), D.board);
+}
+function renderBoard(el, board) {
+  if (!board.length) { el.innerHTML = '<tbody><tr><td class="muted">No one has played yet. Be first.</td></tr></tbody>'; return; }
+  let place = 0;
+  el.innerHTML = `<thead><tr><th></th><th>Name</th><th class="num">Time</th><th class="num">Clicks</th><th class="num hide-s">Streak</th></tr></thead><tbody>` + board.map((b) => {
+    const p = b.status === 'done' ? ++place : '';
+    const st = b.status === 'done' ? fmt(b.ms) : b.status === 'dnf' ? 'DNF' : 'playing';
+    return `<tr class="${b.you ? 'you' : ''}"><td class="pl">${p}</td><td><b>${esc(b.name)}</b></td><td class="num">${st}</td><td class="num">${b.clicks ?? '—'}</td><td class="num hide-s"><span class="streak">${b.streak > 1 ? b.streak + ' days' : ''}</span></td></tr>`;
+  }).join('') + '</tbody>';
+}
+async function playDaily() {
+  const name = needName(); if (!name) return;
+  const btn = $('dPlay'); btn.disabled = true;
+  try {
+    const c = await api('daily/claim', { name });
+    store.daily[c.date] = { token: c.token }; save();
+    beginRun({ mode: 'daily', start: c.start, target: c.target, startAt: Date.now() + 3200, token: c.token, date: c.date, label: `Daily #${c.n}` });
+  } catch (e) { $('homeErr').textContent = e.message; }
+  finally { btn.disabled = false; }
+}
+function resumeDaily() {
+  const r = store.run;
+  toast('Picking up where you left off. The clock kept running.');
+  beginRun({ mode: 'daily', start: r.start, target: r.target, startAt: r.startAt, path: r.path, token: r.token, date: r.date });
+}
+function showDailyResults(b) {
+  if (!D || b.date === D.today) D = b;
+  const list = b.board.filter((x) => x.status !== 'playing').map((x) => ({ name: x.name, status: x.status, ms: x.ms, clicks: x.clicks, path: x.path || [], you: x.you, streak: x.streak }));
+  const isToday = b.date === b.today;
+  $('xKind').textContent = `Daily #${b.n} · ${dateLabel(b.date)}`;
+  $('xPair').innerHTML = arrowPair(b.start, b.target);
+  const still = b.board.filter((x) => x.status === 'playing').length;
+  $('xSub').textContent = `${list.length} finished or gave up` + (still ? ` · ${still} still racing` : '');
+  renderResults(list, { key: 'daily:' + b.date, start: b.start, target: b.target, shortest: b.shortest, saveShortest: (p) => api('daily/shortest', { date: b.date, path: p }).catch(() => {}), background: true });
+  $('xActions').innerHTML = '';
+  const home = btnEl('Back to Wiki Race', 'btn', () => { show('vHome'); refreshHome(); });
+  $('xActions').append(home);
+  if (isToday) { const y = btnEl('Yesterday’s race', 'btn ghost', openYesterday); $('xActions').append(y); }
+  show('vResults');
+}
+async function openYesterday(e) {
+  if (e) e.preventDefault();
+  const t = D ? D.today : todayKey();
+  const y = new Date(Date.parse(t + 'T12:00:00Z') - 864e5).toISOString().slice(0, 10);
+  try { const b = await loadDaily(y); if (b.date !== y) throw new Error('No race yesterday. Wiki Race started today.'); showDailyResults(b); } catch (err) { toast(err.message); }
+}
+$('yday').addEventListener('click', openYesterday);
+function btnEl(text, cls, fn) { const b = document.createElement('button'); b.className = cls; b.textContent = text; b.onclick = fn; return b; }
+
+/* ============================================================ results + paths */
+function pageTimes(p) {
+  // time on each page = when you clicked off it − when you landed on it
+  const path = p.path || [];
+  const out = [];
+  for (let i = 0; i < path.length; i++) {
+    const isLast = i === path.length - 1;
+    if (isLast && p.status === 'done') out.push(null);
+    else out.push(Math.max(0, (isLast ? (p.ms ?? path[i].at) : path[i + 1].at) - path[i].at));
+  }
+  return out;
+}
+function renderResults(players, opts) {
+  const sorted = players.slice().sort((a, b) => (a.status === 'done' ? 0 : 1) - (b.status === 'done' ? 0 : 1) || (a.ms ?? 1e15) - (b.ms ?? 1e15) || (a.clicks ?? 0) - (b.clicks ?? 0));
+  let place = 0;
+  $('xList').innerHTML = sorted.map((p, idx) => {
+    const pl = p.status === 'done' ? ++place : '–';
+    const times = pageTimes(p);
+    const real = times.filter((x) => x != null);
+    const med = real.length ? real.slice().sort((a, b) => a - b)[Math.floor(real.length / 2)] : 0;
+    const maxT = Math.max(1, ...real);
+    const slowCut = Math.max(45000, med * 3);
+    const steps = (p.path || []).map((s, i) => {
+      const t = times[i];
+      const last = i === p.path.length - 1;
+      const fin = last && p.status === 'done';
+      const slow = t != null && t >= slowCut && real.length > 1;
+      return `<li class="${fin ? 'fin' : ''}${last && p.status === 'dnf' ? ' dnf' : ''}${slow ? ' slow' : ''}"><a href="${wikiUrl(s.t)}" target="_blank" rel="noopener">${esc(s.t)}</a>${slow ? '<span class="flag">got distracted</span>' : ''}<span class="t">${fin ? '🏁 ' + fmt(p.ms) : fmtShort(t)}</span>${t != null ? `<div class="bar"><i style="width:${(t / maxT * 100).toFixed(1)}%"></i></div>` : ''}</li>`;
+    }).join('');
+    const none = p.path && p.path.length ? '' : '<p class="muted" style="margin:0">No route recorded.</p>';
+    return `<li class="${idx === 0 || p.you ? 'open' : ''}"><button class="head"><span class="place">${pl}</span><span class="who">${esc(p.name)}${p.you ? ' <span class="pill red">you</span>' : ''}</span><span class="tm">${p.status === 'done' ? fmt(p.ms) : 'DNF'}</span><span class="cl">${p.clicks ?? 0} clicks</span><span class="chev">›</span></button><div class="body">${none}<ol class="steps">${steps}</ol></div></li>`;
+  }).join('') || '<li><p class="muted">Nobody has finished yet.</p></li>';
+  $('xList').querySelectorAll('.head').forEach((h) => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+  setupShortest(opts);
+}
+
+/* ---- shortest route: bidirectional-ish search over Wikipedia's link tables ---- */
+const SP = { key: null, path: null, busy: false, progress: '', reveal: false, opts: null, promise: null };
+function setupShortest(opts) {
+  if (SP.key !== opts.key) { SP.key = opts.key; SP.path = null; SP.reveal = false; SP.promise = null; SP.fail = null; }
+  SP.opts = opts;
+  if (opts.shortest && (!SP.path || opts.shortest.length < SP.path.length)) SP.path = opts.shortest;
+  if (!SP.path && opts.background && !SP.promise) computeShortest();
+  paintShortest();
+}
+function paintShortest() {
+  const b = $('xShortBody');
+  if (SP.reveal && SP.path) {
+    const n = SP.path.length - 1;
+    b.innerHTML = `<div class="chain">${SP.path.map((t, i) => `${i ? '<span class="ar">→</span>' : ''}<a href="${wikiUrl(t)}" target="_blank" rel="noopener">${esc(t)}</a>`).join('')}</div><p class="mono muted" style="margin:10px 0 0">${n} click${n === 1 ? '' : 's'}. There can be other routes just as short.</p>`;
+    return;
+  }
+  if (SP.reveal && SP.fail) { b.innerHTML = `<p style="margin:10px 0 0">${esc(SP.fail)}</p>`; return; }
+  b.innerHTML = `<button class="btn" id="xShortBtn" style="margin-top:10px">${SP.reveal ? 'Finding it…' : 'View shortest route'}</button><span class="mono muted" style="display:block;margin-top:8px">${esc(SP.reveal ? SP.progress : '')}</span>`;
+  $('xShortBtn').disabled = SP.reveal;
+  $('xShortBtn').onclick = () => { SP.reveal = true; if (!SP.path && !SP.promise) computeShortest(); paintShortest(); };
+}
+async function wapi(params) {
+  const q = new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', origin: '*', ...params });
+  for (let i = 0; i < 3; i++) {
+    const r = await fetch(`${WP}/w/api.php?${q}`);
+    if (r.ok) return r.json();
+    await new Promise((res) => setTimeout(res, 600 * (i + 1)));
+  }
+  throw new Error('Wikipedia API error');
+}
+async function linksFrom(title, cap = 4) {
+  const out = []; let cont = {};
+  for (let i = 0; i < cap; i++) {
+    const j = await wapi({ generator: 'links', titles: title, gplnamespace: '0', gpllimit: 'max', redirects: '1', ...cont });
+    for (const p of (j.query && j.query.pages) || []) if (!p.missing && p.ns === 0) out.push(norm(p.title));
+    if (!j.continue) break; cont = j.continue;
+  }
+  return out;
+}
+async function linksTo(title, cap = 30) {
+  const out = new Set(); let cont = {};
+  for (let i = 0; i < cap; i++) {
+    const j = await wapi({ list: 'backlinks', bltitle: title, blnamespace: '0', bllimit: 'max', blredirect: '1', ...cont });
+    for (const b of (j.query && j.query.backlinks) || []) {
+      if (b.redirect) { for (const r of b.redirlinks || []) out.add(norm(r.title)); }
+      else out.add(norm(b.title));
+    }
+    if (!j.continue) break; cont = j.continue;
+  }
+  return out;
+}
+function computeShortest() {
+  const opts = SP.opts, key = SP.key;
+  const set = (msg) => { if (SP.key === key) { SP.progress = msg; paintShortest(); } };
+  SP.promise = (async () => {
+    const start = await resolveTitle(opts.start), target = await resolveTitle(opts.target);
+    if (start === target) return [start];
+    set('Reading the start page…');
+    const L1 = [...new Set(await linksFrom(start))];
+    if (L1.includes(target)) return [start, target];
+    set('Finding pages that link to the target…');
+    const B1 = await linksTo(target);
+    const hit1 = L1.find((x) => B1.has(x));
+    if (hit1) return [start, hit1, target];
+    // Two pages deep from the start, checking each page against everything that links to the target.
+    let found = null, done = 0, i = 0;
+    const worker = async () => {
+      while (!found && i < L1.length) {
+        const p = L1[i++];
+        let ls = [];
+        try { ls = await linksFrom(p, 3); } catch {}
+        if (found) return;
+        if (ls.includes(target)) { found = [start, p, target]; return; }
+        const x = ls.find((y) => B1.has(y) && y !== start);
+        if (x) { found = [start, p, x, target]; return; }
+        done++;
+        if (done % 10 === 0) set(`Checked ${done} of ${L1.length} pages…`);
+      }
+    };
+    await Promise.all(Array.from({ length: 6 }, worker));
+    if (found) return found;
+    throw new Error('It’s at least 4 clicks. Too deep to map from here.');
+  })();
+  SP.promise.then((p) => {
+    if (SP.key !== key) return;
+    SP.path = p;
+    if (opts.saveShortest) opts.saveShortest(p);
+    paintShortest();
+  }).catch((e) => { if (SP.key === key) { SP.fail = e.message || 'Couldn’t work out the shortest route.'; paintShortest(); } });
+}
+
+/* ============================================================ rooms */
+const room = { ws: null, code: null, max: 16, state: null, offset: 0, want: false, create: false, ping: null, retry: 0 };
+const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+const newCode = () => Array.from({ length: 4 }, () => ALPHA[Math.floor(Math.random() * ALPHA.length)]).join('');
+function wsSend(o) { try { if (room.ws && room.ws.readyState === 1) room.ws.send(JSON.stringify(o)); } catch {} }
+function openRoom(code, create, max) {
+  room.code = code.toUpperCase(); room.create = create; room.max = max || 16; room.want = true; room.state = null;
+  history.replaceState(null, '', '/wikirace/?room=' + room.code);
+  $('lCode').textContent = room.code;
+  $('lKind').textContent = 'Connecting…';
+  $('lPlayers').innerHTML = '';
+  show('vLobby');
+  connect();
+}
+function connect() {
+  if (!room.want) return;
+  try { room.ws && room.ws.close(); } catch {}
+  const q = new URLSearchParams({ name: store.name || 'Someone', cid: store.cid });
+  if (room.create) { q.set('create', '1'); q.set('max', String(room.max)); }
+  const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/wikirace/ws/${room.code}?${q}`);
+  room.ws = ws;
+  ws.onopen = () => { room.retry = 0; ws.send(JSON.stringify({ t: 'hello' })); clearInterval(room.ping); room.ping = setInterval(() => { try { ws.send('ping'); } catch {} }, 25000); };
+  ws.onmessage = (ev) => {
+    if (ev.data === 'pong') return;
+    let m; try { m = JSON.parse(ev.data); } catch { return; }
+    if (m.t === 'taken') { room.code = newCode(); history.replaceState(null, '', '/wikirace/?room=' + room.code); $('lCode').textContent = room.code; connect(); return; }
+    if (m.t === 'nope') { room.want = false; leaveRoom(m.why); return; }
+    if (m.t === 'state') {
+      room.create = false; // once the room exists, reconnects just rejoin
+      room.offset = m.now - Date.now();
+      room.state = m;
+      onRoomState();
+    }
+  };
+  ws.onclose = () => {
+    clearInterval(room.ping);
+    if (room.ws !== ws || !room.want) return;
+    const d = Math.min(8000, 600 * 2 ** room.retry++);
+    setTimeout(connect, d);
+  };
+}
+function leaveRoom(msg) {
+  room.want = false; try { room.ws && room.ws.close(); } catch {}
+  room.ws = null; room.state = null; room.code = null;
+  if (R && R.mode === 'room') { R = null; clearInterval(tick); }
+  if (store.run && store.run.mode === 'room') clearRun();
+  history.replaceState(null, '', '/wikirace/');
+  show('vHome'); refreshHome();
+  if (msg) $('homeErr').textContent = msg;
+}
+$('lLeave').addEventListener('click', () => leaveRoom());
+$('lShare').addEventListener('click', async () => {
+  const url = `${location.origin}/wikirace/?room=${room.code}`;
+  const text = room.max === 2 ? 'Wiki Race me' : 'Wiki Race: get in here';
+  if (navigator.share) { try { await navigator.share({ title: 'Wiki Race', text, url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(url); toast('Invite link copied.'); } catch { prompt('Copy this link:', url); }
+});
+function me() { return room.state && room.state.players.find((p) => p.you); }
+function onRoomState() {
+  const s = room.state, my = me();
+  if (!my) return;
+  if (s.phase === 'racing' && my.status === 'racing') {
+    const runKey = s.code + ':' + s.round;
+    if (!R || R.mode !== 'room' || R.key !== runKey) {
+      const saved = store.run && store.run.mode === 'room' && store.run.code === s.code && store.run.round === s.round ? store.run : null;
+      beginRun({ mode: 'room', start: s.start, target: s.target, startAt: s.startAt, offset: room.offset, path: saved ? saved.path : [], label: s.max === 2 ? 'Head-to-head' : 'Group race' });
+      R.key = runKey; R.round = s.round; persistRun();
+    } else { R.offset = room.offset; }
+    return;
+  }
+  if (s.phase === 'racing' && (my.status === 'done' || my.status === 'dnf')) {
+    if ($('vWait').classList.contains('hidden')) { show('vWait'); waitScreen(my.status, my.ms, my.clicks, false); }
+    renderRoom(); return;
+  }
+  if (s.phase === 'racing' && my.status === 'watch') { show('vWait'); renderRoom(); return; }
+  if (s.phase === 'results') {
+    if (R && R.mode === 'room' && !R.done) { R = null; clearInterval(tick); clearRun(); }
+    showRoomResults(); return;
+  }
+  // lobby
+  if (R && R.mode === 'room') { R = null; clearInterval(tick); clearRun(); }
+  show('vLobby'); renderLobby();
+}
+function renderLobby() {
+  const s = room.state, my = me();
+  const racers = s.players.filter((p) => p.status !== 'watch');
+  $('lKind').textContent = s.max === 2 ? 'Head-to-head · room code' : 'Group race · room code';
+  $('lCode').textContent = s.code;
+  $('lCount').textContent = s.max === 2 ? `${racers.length} of 2` : `${racers.length} in`;
+  $('lPlayers').innerHTML = s.players.map((p) => `<li class="${p.online ? '' : 'off'}"><span class="nm">${esc(p.name)}</span>${p.host ? '<span class="pill mut">host</span>' : ''}${p.you ? '<span class="pill red">you</span>' : ''}${p.host ? '' : p.ready ? '<span class="pill ok">ready</span>' : '<span class="pill mut">not ready</span>'}${my.host && !p.you ? `<button class="btn ghost small" data-kick="${p.id}" aria-label="Remove ${esc(p.name)}">✕</button>` : ''}</li>`).join('');
+  $('lPlayers').querySelectorAll('[data-kick]').forEach((b) => b.onclick = () => wsSend({ t: 'kick', id: +b.dataset.kick }));
+  if (s.max === 2 && racers.length < 2) $('lPlayers').insertAdjacentHTML('beforeend', '<li class="off"><span class="nm">Waiting for your opponent…</span></li>');
+  $('lPair').innerHTML = s.start && s.target ? arrowPair(s.start, s.target) : (my.host ? 'Pick the pages below.' : 'Host is picking the pages…');
+  $('lReadyWrap').classList.toggle('hidden', my.host);
+  $('lReady').textContent = my.ready ? 'Ready ✓ (tap to undo)' : 'I’m ready';
+  $('lReady').className = my.ready ? 'btn ghost' : 'btn red';
+  $('lHost').classList.toggle('hidden', !my.host);
+  if (my.host) {
+    const others = s.players.filter((p) => !p.you && p.online);
+    const notReady = others.filter((p) => !p.ready);
+    let note = '';
+    if (!s.start || !s.target) note = 'Set the start and target pages first.';
+    else if (s.max === 2 && others.length < 1) note = 'Waiting for your opponent to join.';
+    else if (notReady.length) note = `Waiting on ${notReady.map((p) => p.name).join(', ')} to ready up.`;
+    else if (!others.length) note = 'Nobody else is here. You can still race solo.';
+    $('lGo').disabled = !s.start || !s.target || (s.max === 2 && others.length < 1) || notReady.length > 0;
+    $('lGoNote').textContent = note;
+    if (document.activeElement !== $('pStart') && document.activeElement !== $('pTarget')) {
+      if (s.start && !$('pStart').dataset.dirty) $('pStart').value = s.start;
+      if (s.target && !$('pTarget').dataset.dirty) $('pTarget').value = s.target;
+    }
+  }
+}
+$('lReady').addEventListener('click', () => { const my = me(); if (my) wsSend({ t: 'ready', v: !my.ready }); });
+['pStart', 'pTarget'].forEach((id) => $(id).addEventListener('input', () => { $(id).dataset.dirty = '1'; }));
+$('pSet').addEventListener('click', async () => {
+  const a = $('pStart').value.trim(), b = $('pTarget').value.trim();
+  $('pErr').textContent = '';
+  if (!a || !b) { $('pErr').textContent = 'Type both pages.'; return; }
+  $('pSet').disabled = true; $('pSet').textContent = 'Checking…';
+  try {
+    const [ra, rb] = await Promise.all([resolveTitle(a), resolveTitle(b)]);
+    if (ra === rb) throw new Error('Start and target are the same page.');
+    delete $('pStart').dataset.dirty; delete $('pTarget').dataset.dirty;
+    $('pStart').value = ra; $('pTarget').value = rb;
+    wsSend({ t: 'pair', start: ra, target: rb });
+  } catch (e) { $('pErr').textContent = e.message; }
+  finally { $('pSet').disabled = false; $('pSet').textContent = 'Use these'; }
+});
+$('pRandom').addEventListener('click', () => { delete $('pStart').dataset.dirty; delete $('pTarget').dataset.dirty; $('pErr').textContent = ''; wsSend({ t: 'random' }); });
+$('lGo').addEventListener('click', () => wsSend({ t: 'go' }));
+$('wEnd').addEventListener('click', () => wsSend({ t: 'end' }));
+function renderRoom() {
+  const s = room.state; if (!s || s.phase !== 'racing') return;
+  const my = me();
+  if (my && my.status === 'watch') {
+    $('wKind').textContent = 'Race in progress'; $('wTime').textContent = 'Hang tight'; $('wSub').textContent = `${s.start} → ${s.target} · you’re in the next one`;
+  }
+  $('wHead').textContent = 'Waiting on the others';
+  const racers = s.players.filter((p) => p.status !== 'watch' && p.status !== 'lobby');
+  $('wList').innerHTML = racers.map((p) => `<li class="${p.online ? '' : 'off'}"><span>${esc(p.name)}${p.you ? ' (you)' : ''}</span>${p.status === 'done' ? '<span class="pill ok">finished</span>' : p.status === 'dnf' ? '<span class="pill mut">gave up</span>' : `<span class="pill red">racing${p.online ? '' : ' · offline'}</span>`}</li>`).join('');
+  $('wEnd').classList.toggle('hidden', !(my && my.host));
+}
+let shownResultsRound = null;
+function showRoomResults() {
+  const s = room.state, my = me();
+  const players = s.players.filter((p) => p.status === 'done' || p.status === 'dnf').map((p) => ({ name: p.name, status: p.status, ms: p.ms, clicks: p.clicks, path: p.path || [], you: p.you }));
+  $('xKind').textContent = (s.max === 2 ? 'Head-to-head' : 'Group race') + ` · room ${s.code} · race ${s.round}`;
+  $('xPair').innerHTML = arrowPair(s.start, s.target);
+  $('xSub').textContent = `${players.filter((p) => p.status === 'done').length} of ${players.length} made it`;
+  const keepOpen = shownResultsRound === s.code + s.round ? [...$('xList').children].map((li) => li.classList.contains('open')) : null;
+  renderResults(players, { key: 'room:' + s.code + ':' + s.round, start: s.start, target: s.target, shortest: s.shortest, saveShortest: (p) => wsSend({ t: 'shortest', path: p }), background: my && my.host });
+  if (keepOpen) [...$('xList').children].forEach((li, i) => li.classList.toggle('open', !!keepOpen[i]));
+  $('xActions').innerHTML = '';
+  if (my && my.host) {
+    $('xActions').append(btnEl('New race, same room', 'btn red', () => wsSend({ t: 'again' })), btnEl('Rematch, pages flipped', 'btn', () => wsSend({ t: 'again', swap: true })));
+  } else {
+    $('xActions').insertAdjacentHTML('beforeend', '<p class="mono muted" style="margin:0">The host can start the next race.</p>');
+  }
+  $('xActions').append(btnEl('Leave room', 'btn ghost', () => leaveRoom()));
+  if (shownResultsRound !== s.code + s.round) { shownResultsRound = s.code + s.round; show('vResults'); }
+  else if ($('vResults').classList.contains('hidden')) show('vResults');
+}
+
+/* ============================================================ home buttons + start-up */
+function makeRoom(max) { const n = needName(); if (!n) return; openRoom(newCode(), true, max); }
+$('mkDuel').addEventListener('click', () => makeRoom(2));
+$('mkGroup').addEventListener('click', () => makeRoom(16));
+function joinTyped() {
+  const c = $('joinCode').value.replace(/[^a-z]/gi, '').toUpperCase();
+  if (c.length !== 4) { $('homeErr').textContent = 'Room codes are four letters.'; return; }
+  const n = needName(); if (!n) return;
+  openRoom(c, false);
+}
+$('joinBtn').addEventListener('click', joinTyped);
+$('joinCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') joinTyped(); });
+
+(function init() {
+  const q = new URLSearchParams(location.search);
+  const rc = (q.get('room') || '').replace(/[^a-z]/gi, '').toUpperCase();
+  refreshHome();
+  if (rc.length === 4) {
+    if (store.name) openRoom(rc, false);
+    else {
+      show('vHome');
+      $('homeErr').textContent = `Type your name, then hit Join to get into room ${rc}.`;
+      $('joinCode').value = rc; nameInput.focus();
+    }
+  } else if (store.run && store.run.mode === 'daily' && store.run.date === todayKey()) {
+    // reloaded mid-run: the home card offers "Back to your run"
+  }
+})();
+</script>
+</body>
+</html>
