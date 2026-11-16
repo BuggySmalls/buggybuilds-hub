@@ -4,5 +4,7 @@
 /spin/* /  302
 /hook /  302
 /hook/* /  302
-/grind /gains/ 301
-/grind/* /gains/ 301
+/grind /health/ 301
+/grind/* /health/ 301
+/gains /health/ 301
+/gains/* /health/ 301

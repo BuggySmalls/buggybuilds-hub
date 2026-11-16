@@ -105,7 +105,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 </head>
 <body>
 <div class="wrap" id="top">
-  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 15, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.17</b></span></header>
+  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 16, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.18</b></span></header>
   <h1>BuGGy<br>Builds<i>.</i></h1>
 
   <ol class="list" style="border-top:2px solid var(--line)">
@@ -113,11 +113,11 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
     <li><a class="row" href="/fretfire/" data-peek="fret"><span class="n">02</span><span class="t">Fretfire</span><span class="k mono">Rhythm game<br>Browser · keys / touch</span><span class="s mono"><b></b>Test build</span><span class="a">↗</span><span class="d">A Guitar Hero-style rhythm game you play in the browser. Four lanes, two original songs, or drop in your own MP3. Keys D F J K, or tap the lanes on your phone.</span><span class="thumb" data-art="fret"></span></a></li>
     <li><a class="row" href="/breaker/" data-peek="breaker"><span class="n">03</span><span class="t">Breaker</span><span class="k mono">Group voice<br>Browser · phone</span><span class="s mono"><b></b>Test build</span><span class="a">↗</span><span class="d">Live group voice for the mountain or the course. Everyone on the same channel hears everyone, hands-free with open mic, or push to talk. Share a link and hop on.</span><span class="thumb" data-art="breaker"></span></a></li>
     <li><a class="row" href="/events/" data-peek="events"><span class="n">04</span><span class="t">Events</span><span class="k mono">Plans &amp; invites<br>Browser · phone</span><span class="s mono"><b></b>Live</span><span class="a">↗</span><span class="d">What’s on the books with the crew. Every plan gets its own invite with the date, the spot and directions. Add it to your calendar or send it on.</span><span class="thumb" data-art="events"></span></a></li>
-    <li><a class="row" href="/gains/" data-peek="gains"><span class="n">05</span><span class="t">Gains</span><span class="k mono">Health tracker<br>Browser · phone</span><span class="s mono"><b></b>Test build</span><span class="a">↗</span><span class="d">Weight, runs, lifts and food, tracked over time. Mile and 5K PRs, lift bests, a calorie counter, and a meal prep planner with a grocery list.</span><span class="thumb" data-art="gains"></span></a></li>
+    <li><a class="row" href="/health/" data-peek="gains"><span class="n">05</span><span class="t">Health</span><span class="k mono">Health tracker<br>Browser · phone</span><span class="s mono"><b></b>Locked</span><span class="a">↗</span><span class="d">Weight, runs, lifts and food, tracked over time. Mile and 5K PRs, lift bests, a calorie counter, and a meal prep planner with a grocery list.</span><span class="thumb" data-art="gains"></span></a></li>
     <li><a class="row" href="/golf/" data-peek="golf"><span class="n">06</span><span class="t">The 180</span><span class="k mono">Golf stats<br>Buggy vs N8</span><span class="s mono"><b></b>Match on</span><span class="a">↗</span><span class="d">A 180-hole golf match between Buggy and N8. The running stroke difference, the lead hole by hole, best rounds, biggest swings, and head-to-head stats on fairways, greens, putts and lost balls.</span><span class="thumb" data-art="golf"></span></a></li>
   </ol>
 
-  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.17</span></footer>
+  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.18</span></footer>
 </div>
 <div class="peek" id="peek"></div>
 
@@ -125,6 +125,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 /* Changelog: newest first. The top entry sets the version shown in the corner.
    Every update to the site adds a new entry here and bumps the version by .01 (v1.01, v1.02, ...). */
 const LOG = [
+  { v: '1.18', date: '2026-11-16', items: ['Gains is now Health, at /health. Old /gains and /grind links still work.', 'Health is locked: it takes a passcode to get in. Once a phone unlocks it, it stays unlocked there.'] },
   { v: '1.17', date: '2026-11-15', items: ['New: Wiki Race, now first on the board. Start on one Wikipedia page and get to another using only the links.', 'A daily race for everyone (one go per name, with a leaderboard and streaks), plus head-to-head and group rooms you join with a code or a link.', 'Routes stay hidden until everyone’s done, then every path shows page by page with how long each person sat on each page. The shortest route is behind a button.'] },
   { v: '1.16', date: '2026-11-15', items: ['The 180: round 1 at Kings Crossing is complete, all 18 holes in.'] },
   { v: '1.15', date: '2026-11-14', items: ['The 180 is underway: first 6 holes at Kings Crossing are in.'] },
