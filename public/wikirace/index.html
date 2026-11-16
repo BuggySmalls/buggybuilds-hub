@@ -222,7 +222,7 @@ label.lab{display:block; margin:0 0 6px}
       <li>Everyone starts on the same Wikipedia page. Get to the target page using only the links in the article.</li>
       <li>No search, no back button, no typing addresses. Ctrl+F on the page is fair game.</li>
       <li>Fastest time wins. Fewer clicks breaks a tie.</li>
-      <li>Nobody sees anyone else’s route until everyone’s done. Then you get every path, page by page, with how long each person sat on each page.</li>
+      <li>Routes stay hidden until you’ve made your own run. Finish or give up, then you get every path, page by page, with how long each person sat on each page.</li>
       <li>The daily race is one go per name per day.</li>
       <li>The shortest route stays hidden until you hit the button.</li>
     </ul>
@@ -628,7 +628,7 @@ function showDailyResults(b) {
   $('xPair').innerHTML = arrowPair(b.start, b.target);
   const still = b.board.filter((x) => x.status === 'playing').length;
   $('xSub').textContent = `${list.length} finished or gave up` + (still ? ` · ${still} still racing` : '');
-  renderResults(list, { key: 'daily:' + b.date, start: b.start, target: b.target, shortest: b.shortest, saveShortest: (p) => api('daily/shortest', { date: b.date, path: p }).catch(() => {}), background: true });
+  renderResults(list, { key: 'daily:' + b.date, start: b.start, target: b.target, shortest: b.shortest, saveShortest: (p) => api('daily/shortest', { date: b.date, path: p }).catch(() => {}), background: true, locked: !b.revealed, lockNote: isToday ? 'Routes show once you’ve run today’s race.' : 'Routes only show for people who ran this race.' });
   $('xActions').innerHTML = '';
   const home = btnEl('Back to Wiki Race', 'btn', () => { show('vHome'); refreshHome(); });
   $('xActions').append(home);
@@ -673,11 +673,12 @@ function renderResults(players, opts) {
       const slow = t != null && t >= slowCut && real.length > 1;
       return `<li class="${fin ? 'fin' : ''}${last && p.status === 'dnf' ? ' dnf' : ''}${slow ? ' slow' : ''}"><a href="${wikiUrl(s.t)}" target="_blank" rel="noopener">${esc(s.t)}</a>${slow ? '<span class="flag">got distracted</span>' : ''}<span class="t">${fin ? '🏁 ' + fmt(p.ms) : fmtShort(t)}</span>${t != null ? `<div class="bar"><i style="width:${(t / maxT * 100).toFixed(1)}%"></i></div>` : ''}</li>`;
     }).join('');
-    const none = p.path && p.path.length ? '' : '<p class="muted" style="margin:0">No route recorded.</p>';
+    const none = opts.locked ? `<p class="muted" style="margin:0">${esc(opts.lockNote)}</p>` : p.path && p.path.length ? '' : '<p class="muted" style="margin:0">No route recorded.</p>';
     return `<li class="${idx === 0 || p.you ? 'open' : ''}"><button class="head"><span class="place">${pl}</span><span class="who">${esc(p.name)}${p.you ? ' <span class="pill red">you</span>' : ''}</span><span class="tm">${p.status === 'done' ? fmt(p.ms) : 'DNF'}</span><span class="cl">${p.clicks ?? 0} clicks</span><span class="chev">›</span></button><div class="body">${none}<ol class="steps">${steps}</ol></div></li>`;
   }).join('') || '<li><p class="muted">Nobody has finished yet.</p></li>';
   $('xList').querySelectorAll('.head').forEach((h) => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
-  setupShortest(opts);
+  $('xShort').classList.toggle('hidden', !!opts.locked);
+  if (!opts.locked) setupShortest(opts);
 }
 
 /* ---- shortest route: bidirectional-ish search over Wikipedia's link tables ---- */
@@ -922,7 +923,7 @@ function showRoomResults() {
   $('xPair').innerHTML = arrowPair(s.start, s.target);
   $('xSub').textContent = `${players.filter((p) => p.status === 'done').length} of ${players.length} made it`;
   const keepOpen = shownResultsRound === s.code + s.round ? [...$('xList').children].map((li) => li.classList.contains('open')) : null;
-  renderResults(players, { key: 'room:' + s.code + ':' + s.round, start: s.start, target: s.target, shortest: s.shortest, saveShortest: (p) => wsSend({ t: 'shortest', path: p }), background: my && my.host });
+  renderResults(players, { key: 'room:' + s.code + ':' + s.round, start: s.start, target: s.target, shortest: s.shortest, saveShortest: (p) => wsSend({ t: 'shortest', path: p }), background: my && my.host && s.raced, locked: !s.raced, lockNote: 'Routes only show for people who ran this race. You’re in the next one.' });
   if (keepOpen) [...$('xList').children].forEach((li, i) => li.classList.toggle('open', !!keepOpen[i]));
   $('xActions').innerHTML = '';
   if (my && my.host) {

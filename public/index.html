@@ -105,7 +105,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 </head>
 <body>
 <div class="wrap" id="top">
-  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 16, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.18</b></span></header>
+  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 16, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.19</b></span></header>
   <h1>BuGGy<br>Builds<i>.</i></h1>
 
   <ol class="list" style="border-top:2px solid var(--line)">
@@ -117,7 +117,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
     <li><a class="row" href="/golf/" data-peek="golf"><span class="n">06</span><span class="t">The 180</span><span class="k mono">Golf stats<br>Buggy vs N8</span><span class="s mono"><b></b>Match on</span><span class="a">↗</span><span class="d">A 180-hole golf match between Buggy and N8. The running stroke difference, the lead hole by hole, best rounds, biggest swings, and head-to-head stats on fairways, greens, putts and lost balls.</span><span class="thumb" data-art="golf"></span></a></li>
   </ol>
 
-  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.18</span></footer>
+  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.19</span></footer>
 </div>
 <div class="peek" id="peek"></div>
 
@@ -125,6 +125,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 /* Changelog: newest first. The top entry sets the version shown in the corner.
    Every update to the site adds a new entry here and bumps the version by .01 (v1.01, v1.02, ...). */
 const LOG = [
+  { v: '1.19', date: '2026-11-16', items: ['Wiki Race: routes stay hidden until you’ve made your own run. Finish or give up first, then everyone’s paths and the shortest route show up.', 'Past days’ routes only show for people who ran that day, and anyone who joins a room just to watch sees times only.'] },
   { v: '1.18', date: '2026-11-16', items: ['Gains is now Health, at /health. Old /gains and /grind links still work.', 'Health is locked: it takes a passcode to get in. Once a phone unlocks it, it stays unlocked there.'] },
   { v: '1.17', date: '2026-11-15', items: ['New: Wiki Race, now first on the board. Start on one Wikipedia page and get to another using only the links.', 'A daily race for everyone (one go per name, with a leaderboard and streaks), plus head-to-head and group rooms you join with a code or a link.', 'Routes stay hidden until everyone’s done, then every path shows page by page with how long each person sat on each page. The shortest route is behind a button.'] },
   { v: '1.16', date: '2026-11-15', items: ['The 180: round 1 at Kings Crossing is complete, all 18 holes in.'] },

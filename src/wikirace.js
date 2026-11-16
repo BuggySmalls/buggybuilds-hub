@@ -1,9 +1,10 @@
 // Wiki Race server. Two Durable Objects:
 //  - Daily: one object ("board") holding every day's leaderboard. One attempt per name per day.
-//    Players' paths stay hidden until you've finished yourself (or the day is over).
+//    Players' paths (and the shortest route) only go to someone who has finished or given up that day's race themselves.
 //  - Race: one object per room code for head-to-head (2 players) and group races (up to 16).
 //    Everyone's progress is logged here silently and only revealed on the results screen,
 //    which unlocks when every racer has finished or given up (or the host ends the race).
+//    Routes only go to people who raced that round; anyone who joined late to watch sees times only.
 // Article pages themselves are fetched by the browser straight from Wikipedia.
 import { DurableObject } from "cloudflare:workers";
 import { PAIRS, FIRST_DAY } from "./wikirace-pairs.js";
@@ -64,7 +65,7 @@ export class Daily extends DurableObject {
       return { k, e, status };
     });
     const mine = token ? list.find((x) => x.e.token === token) : null;
-    const reveal = date < t || (mine && mine.status !== "playing");
+    const reveal = !!mine && mine.status !== "playing"; // Nick, Nov 16 2026: no routes until you've made your own attempt
     const st = await this.streaks(list.map((x) => x.k), date);
     const rank = (x) => (x.status === "done" ? 0 : x.status === "dnf" ? 1 : 2);
     list.sort((a, b) => rank(a) - rank(b) || (a.e.ms || 0) - (b.e.ms || 0) || (a.e.clicks || 0) - (b.e.clicks || 0) || a.e.startedAt - b.e.startedAt);
@@ -192,6 +193,8 @@ export class Race extends DurableObject {
     const s = this.s;
     const ids = Object.keys(s.players);
     const results = s.phase === "results";
+    const mine = s.players[forCid];
+    const raced = !!mine && (mine.status === "done" || mine.status === "dnf");
     const players = ids.map((cid) => {
       const p = s.players[cid];
       const o = {
@@ -199,13 +202,13 @@ export class Race extends DurableObject {
         online: online.has(cid), host: cid === s.host, you: cid === forCid,
       };
       if (results || cid === forCid) { o.ms = p.ms ?? null; o.clicks = p.clicks ?? null; }
-      if (results && (p.status === "done" || p.status === "dnf")) o.path = p.path || [];
+      if (results && raced && (p.status === "done" || p.status === "dnf")) o.path = p.path || [];
       return o;
     });
     return {
       t: "state", code: s.code, max: s.max, phase: s.phase, round: s.round,
       start: s.start, target: s.target, startAt: s.startAt, now: Date.now(),
-      players, shortest: results ? s.shortest : null, hasShortest: !!s.shortest,
+      players, raced, shortest: results && raced ? s.shortest : null, hasShortest: !!s.shortest,
     };
   }
   broadcast(except) {
