@@ -58,6 +58,16 @@ label.lab{display:block; margin:0 0 6px}
 .mode + .mode{border-left:1px solid var(--line); padding-left:16px}
 .mode p{margin:0; color:var(--muted); font-size:15px; flex:1}
 .mode .join{display:flex; gap:8px}
+.solo{border-bottom:2px solid var(--line); margin:-24px 0 24px; padding:18px 0 20px}
+.solo .sh{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap}
+.solo .sh h3{margin:0} .solo .sh p{margin:0; color:var(--muted); font-size:15px}
+.solo .opts{display:grid; grid-template-columns:auto 1fr 1fr; gap:16px; margin-top:14px; align-items:end}
+.solo .opt{display:flex; flex-direction:column; gap:8px; min-width:0}
+.solo .opt .pick{display:flex; gap:8px} .solo .opt .pick > *{min-width:0}
+.solo select.field{width:100%; border:2px solid var(--ink); background:var(--card); color:var(--ink); padding:11px 12px; font-size:16px; border-radius:0; min-height:48px; -webkit-appearance:none; appearance:none}
+.solo .own{display:grid; grid-template-columns:1fr 1fr auto; gap:8px}
+.solo .note{color:var(--muted); font-size:13px; min-height:1em}
+.solo .resume{margin-top:12px}
 .mode .join input{text-transform:uppercase; letter-spacing:.2em; font-family:'JetBrains Mono',monospace; min-width:0}
 .namebar{display:flex; gap:10px; align-items:end; margin:0 0 24px}
 .namebar > div{flex:1}
@@ -177,6 +187,7 @@ label.lab{display:block; margin:0 0 6px}
 .statusgrid li{display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--soft); font-weight:700}
 @media (max-width:720px){
   .modes{grid-template-columns:1fr}
+  .solo .opts{grid-template-columns:1fr} .solo .own{grid-template-columns:1fr 1fr} .solo .own .btn{grid-column:1/-1}
   .mode{padding:16px 0} .mode + .mode{border-left:0; border-top:1px solid var(--line); padding-left:0}
   .lobbygrid{grid-template-columns:1fr}
   .how{columns:1}
@@ -214,6 +225,17 @@ label.lab{display:block; margin:0 0 6px}
       <div class="mode"><h3>Join a room</h3><p>Got a four-letter code? Type it in.</p><div class="join"><input class="field" id="joinCode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off"><button class="btn" id="joinBtn">Join</button></div></div>
     </div>
 
+    <div class="solo" id="solo">
+      <div class="sh"><h3>Solo</h3><p>Just you, any time. Doesn’t count on the daily board.</p></div>
+      <div class="opts">
+        <div class="opt"><span class="lab mono">Random</span><button class="btn red" id="sRandom">Random race</button></div>
+        <div class="opt"><label class="lab mono" for="sPast">Replay a past daily</label><div class="pick"><select class="field" id="sPast"><option value="">Loading…</option></select><button class="btn" id="sPastGo">Play</button></div></div>
+        <div class="opt"><span class="lab mono">Pick your own pages</span><div class="own"><input class="field" id="sStart" placeholder="Start page" aria-label="Start page"><input class="field" id="sTarget" placeholder="Target page" aria-label="Target page"><button class="btn" id="sOwnGo">Race</button></div></div>
+      </div>
+      <p class="note mono" id="sNote"></p>
+      <div class="resume hidden" id="sResume"><button class="btn ghost" id="sResumeBtn">Back to your solo run</button></div>
+    </div>
+
     <div class="sec"><h3>Today’s board</h3><a class="mono" href="#" id="yday">Yesterday’s race →</a></div>
     <table class="board" id="board"><tbody><tr><td class="muted">Loading…</td></tr></tbody></table>
 
@@ -223,7 +245,7 @@ label.lab{display:block; margin:0 0 6px}
       <li>No search, no back button, no typing addresses. Ctrl+F on the page is fair game.</li>
       <li>Fastest time wins. Fewer clicks breaks a tie.</li>
       <li>Routes stay hidden until you’ve made your own run. Finish or give up, then you get every path, page by page, with how long each person sat on each page.</li>
-      <li>The daily race is one go per name per day.</li>
+      <li>The daily race is one go per name per day. Solo races (random, past dailies or your own pages) are as many as you want and stay on your device.</li>
       <li>The shortest route stays hidden until you hit the button.</li>
     </ul>
   </main>
@@ -446,7 +468,7 @@ function startTicker() { clearInterval(tick); tick = setInterval(() => { if (R &
 // Count down to `startAt` (in server time), loading the start page meanwhile, then go.
 async function beginRun(opts) {
   // opts: {mode, start, target, startAt, offset, path?, label}
-  R = { mode: opts.mode, start: opts.start, target: opts.target, targetN: norm(opts.target), startAt: opts.startAt, offset: opts.offset || 0, path: opts.path || [], done: false, loading: false, token: opts.token, date: opts.date };
+  R = { mode: opts.mode, start: opts.start, target: opts.target, targetN: norm(opts.target), startAt: opts.startAt, offset: opts.offset || 0, path: opts.path || [], done: false, loading: false, token: opts.token, date: opts.date, solo: opts.solo || null };
   persistRun();
   $('rGoal').textContent = R.target;
   $('rTime').textContent = '0:00'; $('rClicks').textContent = '0';
@@ -518,7 +540,7 @@ $('rGiveUp').addEventListener('click', () => {
 });
 function persistRun() {
   if (!R) return;
-  store.run = { mode: R.mode, start: R.start, target: R.target, startAt: R.startAt, path: R.path, token: R.token, date: R.date, code: R.mode === 'room' ? room.code : null, round: R.round };
+  store.run = { mode: R.mode, start: R.start, target: R.target, startAt: R.startAt, path: R.path, token: R.token, date: R.date, code: R.mode === 'room' ? room.code : null, round: R.round, solo: R.solo };
   save();
 }
 function clearRun() { delete store.run; save(); }
@@ -527,6 +549,7 @@ function sendStep() {
   clearTimeout(stepT);
   stepT = setTimeout(() => {
     if (!R || R.done) return;
+    if (R.mode === 'solo') return;
     if (R.mode === 'daily') api('daily/step', { token: R.token, date: R.date, path: R.path }).catch(() => {});
     else wsSend({ t: 'step', path: R.path });
   }, 300);
@@ -534,6 +557,7 @@ function sendStep() {
 async function finishRun(status, ms) {
   R.done = true; R.ms = ms; R.status = status;
   clearInterval(tick); clearRun(); releaseBack();
+  if (R.mode === 'solo') { soloDone(); return; }
   if (R.mode === 'daily') {
     show('vWait'); waitScreen(status, ms, R.path.length - 1, true);
     try {
@@ -936,6 +960,92 @@ function showRoomResults() {
   else if ($('vResults').classList.contains('hidden')) show('vResults');
 }
 
+/* ============================================================ solo */
+// Solo (Nick, Nov 16 2026): random races, past dailies and your own pages, any time. Nothing goes to the server;
+// personal bests per pair live in this device's store.
+store.solo = store.solo || {};
+let P = null; // { today, past: [{date, n, start, target, best}], pool: [titles] }
+const pairKey = (a, b) => norm(a) + ' → ' + norm(b);
+async function loadPairs() {
+  try { P = await api('pairs'); } catch { P = null; }
+  const sel = $('sPast');
+  if (!P || !P.past.length) { sel.innerHTML = `<option value="">${P ? 'No past dailies yet' : 'Couldn’t load'}</option>`; $('sPastGo').disabled = true; return; }
+  sel.innerHTML = P.past.map((d, i) => `<option value="${i}">#${d.n} ${esc(d.start)} → ${esc(d.target)} · ${esc(dateLabel(d.date).replace(/^\w+, /, ''))}</option>`).join('');
+  $('sPastGo').disabled = false;
+  pastNote();
+}
+function pastNote() {
+  const d = P && P.past[+$('sPast').value];
+  if (!d) return;
+  const pb = store.solo[pairKey(d.start, d.target)];
+  const bits = [d.best ? `Day’s best: ${d.best.name} ${fmt(d.best.ms)}` : 'Nobody finished that day'];
+  if (pb) bits.push(`your best ${fmt(pb.ms)}`);
+  $('sNote').textContent = bits.join(' · ');
+}
+$('sPast').addEventListener('change', pastNote);
+function startSolo(start, target, solo) {
+  $('sNote').textContent = '';
+  beginRun({ mode: 'solo', start, target, startAt: Date.now() + 3200, solo, label: solo.kind === 'past' ? `Daily #${solo.n} replay` : solo.kind === 'random' ? 'Random race' : 'Solo race' });
+}
+function randomPair() {
+  const pool = (P && P.pool && P.pool.length > 1) ? P.pool : ['Toaster', 'Genghis Khan', 'Pizza', 'Moon', 'Banana', 'Albert Einstein', 'Golf', 'Leonardo da Vinci'];
+  const last = store.solo._last || '';
+  for (let i = 0; i < 20; i++) {
+    const a = pool[Math.floor(Math.random() * pool.length)];
+    let b = a; while (b === a) b = pool[Math.floor(Math.random() * pool.length)];
+    if (pairKey(a, b) !== last || i === 19) return [a, b];
+  }
+}
+$('sRandom').addEventListener('click', () => { const [a, b] = randomPair(); startSolo(a, b, { kind: 'random' }); });
+$('sPastGo').addEventListener('click', () => { const d = P && P.past[+$('sPast').value]; if (d) startSolo(d.start, d.target, { kind: 'past', date: d.date, n: d.n }); });
+async function ownGo() {
+  const a = $('sStart').value.trim(), b = $('sTarget').value.trim();
+  if (!a || !b) { $('sNote').textContent = 'Type a start page and a target page.'; return; }
+  const btn = $('sOwnGo'); btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    const [ra, rb] = await Promise.all([resolveTitle(a), resolveTitle(b)]);
+    if (ra === rb) throw new Error('Start and target are the same page.');
+    startSolo(ra, rb, { kind: 'own' });
+  } catch (e) { $('sNote').textContent = e.message; }
+  finally { btn.disabled = false; btn.textContent = 'Race'; }
+}
+$('sOwnGo').addEventListener('click', ownGo);
+['sStart', 'sTarget'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') ownGo(); }));
+$('sResumeBtn').addEventListener('click', () => {
+  const r = store.run; if (!r || r.mode !== 'solo') return;
+  toast('Picking up where you left off. The clock kept running.');
+  beginRun({ mode: 'solo', start: r.start, target: r.target, startAt: r.startAt, path: r.path, solo: r.solo || { kind: 'own' } });
+});
+async function soloDone() {
+  const run = R, k = pairKey(run.start, run.target), solo = run.solo || { kind: 'own' };
+  const clicks = Math.max(0, run.path.length - 1);
+  const prev = store.solo[k];
+  const pb = run.status === 'done' && (!prev || run.ms < prev.ms || (run.ms === prev.ms && clicks < prev.clicks));
+  if (pb) store.solo[k] = { ms: run.ms, clicks, at: Date.now() };
+  store.solo._last = k; save();
+  $('xKind').textContent = solo.kind === 'past' ? `Solo · Daily #${solo.n} replay · ${dateLabel(solo.date)}` : solo.kind === 'random' ? 'Solo · Random race' : 'Solo race';
+  $('xPair').innerHTML = arrowPair(run.start, run.target);
+  const sub = [];
+  if (run.status === 'done') sub.push(pb ? (prev ? `New best! Old one was ${fmt(prev.ms)}` : 'First time through') : `Your best: ${fmt(prev.ms)} · ${prev.clicks} clicks`);
+  else if (prev) sub.push(`Your best: ${fmt(prev.ms)}`);
+  $('xSub').textContent = sub.join(' · ');
+  renderResults([{ name: store.name || 'You', status: run.status, ms: run.ms, clicks, path: run.path, you: !!store.name }], { key: 'solo:' + k, start: run.start, target: run.target, shortest: null, saveShortest: () => {}, background: true });
+  $('xActions').innerHTML = '';
+  $('xActions').append(
+    btnEl('Another random race', 'btn red', () => { const [a, b] = randomPair(); startSolo(a, b, { kind: 'random' }); }),
+    btnEl('Run it again', 'btn', () => startSolo(run.start, run.target, solo)),
+    btnEl('Back to Wiki Race', 'btn ghost', () => { show('vHome'); refreshHome(); loadPairs(); $('sResume').classList.add('hidden'); }),
+  );
+  show('vResults');
+  if (solo.kind === 'past') {
+    try {
+      const b = await loadDaily(solo.date);
+      const best = b.board.find((x) => x.status === 'done');
+      if (best && $('xKind').textContent.includes(`#${solo.n}`)) $('xSub').textContent = [...sub, `Day’s best: ${best.name} ${fmt(best.ms)} · ${best.clicks} clicks`].join(' · ');
+    } catch {}
+  }
+}
+
 /* ============================================================ home buttons + start-up */
 function makeRoom(max) { const n = needName(); if (!n) return; openRoom(newCode(), true, max); }
 $('mkDuel').addEventListener('click', () => makeRoom(2));
@@ -953,6 +1063,8 @@ $('joinCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') joinTy
   const q = new URLSearchParams(location.search);
   const rc = (q.get('room') || '').replace(/[^a-z]/gi, '').toUpperCase();
   refreshHome();
+  loadPairs();
+  if (store.run && store.run.mode === 'solo') $('sResume').classList.remove('hidden');
   if (rc.length === 4) {
     if (store.name) openRoom(rc, false);
     else {

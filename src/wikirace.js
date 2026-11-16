@@ -99,6 +99,18 @@ export class Daily extends DurableObject {
       return json(await this.board(date, url.searchParams.get("token") || ""));
     }
 
+    // Solo mode (Nick, Nov 16 2026): past dailies to replay (never today's or future ones) + the page pool for random races.
+    if (sub === "pairs" && req.method === "GET") {
+      const past = [];
+      for (let d = addDays(t, -1); d >= FIRST_DAY && past.length < 60; d = addDays(d, -1)) {
+        const p = dailyPair(d);
+        const data = await this.day(d);
+        const best = Object.values(data.entries).filter((e) => e.status === "done").sort((a, b) => a.ms - b.ms || a.clicks - b.clicks)[0];
+        past.push({ date: d, n: p.n, start: p.start, target: p.target, best: best ? { name: best.name, ms: best.ms, clicks: best.clicks } : null });
+      }
+      return json({ today: t, past, pool: [...new Set(PAIRS.flat())] });
+    }
+
     if (sub === "daily/claim" && req.method === "POST") {
       const name = cleanName(body.name), k = keyOf(name);
       if (!name) return json({ error: "Type a name first." }, 400);
