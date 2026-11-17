@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BetterBettor+</title>
+<meta name="description" content="Log your bets on both sides, see your best and worst case, and size a hedge.">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  /* Two Sides: a matchup header, a "where you stand" bar chart, one column per side, a hedge slider, then a debit/credit ledger per outcome. */
+  --paper:#F6F4F0; --surface:#FFFFFF; --ink:#1C1A17; --muted:#5E5A52; --rule:#E4E1DA; --track:#EFECE6;
+  --a:#2348A8; --a-soft:#E9EEFA; --a-on:#FFFFFF;
+  --b:#C2410C; --b-soft:#FBEDE4; --b-on:#FFFFFF;
+  --pos:#0F7A46; --neg:#B42318; --pos-soft:#E3F3EA; --neg-soft:#FBE8E5;
+  --font-display:"Space Grotesk","Inter",system-ui,sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121110; --surface:#1C1A18; --ink:#EDEAE4; --muted:#A8A196; --rule:#2F2C28; --track:#2A2723;
+    --a:#93AAF2; --a-soft:#1D2539; --a-on:#121110;
+    --b:#F2925E; --b-soft:#3A2419; --b-on:#121110;
+    --pos:#5CCF95; --neg:#F28A7E; --pos-soft:#14301F; --neg-soft:#3A1D1A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121110; --surface:#1C1A18; --ink:#EDEAE4; --muted:#A8A196; --rule:#2F2C28; --track:#2A2723;
+  --a:#93AAF2; --a-soft:#1D2539; --a-on:#121110;
+  --b:#F2925E; --b-soft:#3A2419; --b-on:#121110;
+  --pos:#5CCF95; --neg:#F28A7E; --pos-soft:#14301F; --neg-soft:#3A1D1A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.4;-webkit-text-size-adjust:100%}
+.wrap{max-width:640px;margin:0 auto;padding:12px 16px 64px;display:flex;flex-direction:column;gap:14px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.n{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+input,select{font:16px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.btn{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--rule);background:var(--surface);font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn.sm{min-height:38px;padding:0 12px;font-size:13px;border-radius:10px}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.danger{color:var(--neg);border-color:var(--neg-soft);background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.home{color:var(--muted);text-decoration:none;font-size:13px;font-weight:600}
+.home:hover{color:var(--ink)}
+.evbar{display:flex;gap:6px;align-items:center;flex:1 1 260px;justify-content:flex-end;min-width:0}
+.evbar select{flex:1 1 140px;max-width:240px;padding:8px 10px;font-size:14px;min-height:38px}
+
+.match{display:flex;flex-direction:column;gap:4px}
+.brand{margin:0;font:700 13px var(--font-display);letter-spacing:.02em;color:var(--muted)}
+.brand b{color:var(--b)}
+.sides-in{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
+.side-name{font:700 30px var(--font-display);border:0;background:transparent;padding:4px 0;border-bottom:2px dashed transparent;border-radius:0}
+.side-name:hover,.side-name:focus{border-bottom-color:var(--rule)}
+.side-name.a{color:var(--a)}.side-name.b{color:var(--b);text-align:right}
+.side-name::placeholder{color:var(--muted);opacity:.6}
+.vs{font:600 14px var(--font-display);color:var(--muted)}
+
+.banner{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--a-soft);border-radius:14px;padding:10px 12px;font-size:14px}
+
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+h2{margin:0;font:600 12px var(--font-body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.hint{margin:0;font-size:13px;color:var(--muted)}
+.err{margin:0;font-size:13px;color:var(--neg)}
+.err:empty{display:none}
+
+.stand{display:flex;flex-direction:column;gap:12px}
+.srow{display:flex;flex-direction:column;gap:5px}
+.srow-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px}
+.tag{font:700 10px var(--font-body);letter-spacing:.06em;padding:2px 6px;border-radius:5px;margin-left:6px;vertical-align:1px}
+.tag.best{background:var(--pos-soft);color:var(--pos)}.tag.worst{background:var(--neg-soft);color:var(--neg)}
+.bar{height:10px;border-radius:6px;background:var(--track);position:relative;overflow:hidden}
+.bar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--rule)}
+.bar i{position:absolute;top:0;bottom:0}
+.bar i.p{left:50%;background:var(--pos);border-radius:0 6px 6px 0}
+.bar i.m{right:50%;background:var(--neg);border-radius:6px 0 0 6px}
+.sfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.pill{display:inline-flex;padding:3px 10px;border-radius:999px;font:600 12px var(--font-body)}
+.pill.good{background:var(--pos-soft);color:var(--pos)}.pill.bad{background:var(--neg-soft);color:var(--neg)}.pill.flat{background:var(--track);color:var(--muted)}
+.oedit{display:flex;flex-direction:column;gap:8px}
+.orow{display:flex;gap:6px;align-items:center}
+.orow .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.dot.s0{background:var(--a)}.dot.s1{background:var(--b)}
+.orow input{padding:8px 10px;font-size:15px}
+.osplit{display:flex;gap:8px;flex-wrap:wrap}
+
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.col{border-radius:18px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.col.s0{background:var(--a-soft)}.col.s1{background:var(--b-soft)}
+.col h3{margin:0;padding:2px 4px;font:700 15px var(--font-display);overflow-wrap:anywhere}
+.col.s0 h3{color:var(--a)}.col.s1 h3{color:var(--b)}
+.bet{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--surface);border:1px solid transparent;border-radius:12px;padding:10px;cursor:pointer;min-width:0}
+.bet:hover{border-color:var(--rule)}
+.bet.editing{border-color:var(--ink)}
+.bet .bn{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.bet .ba{font-size:13px}
+.bet .bo{font-size:12px;font-weight:600;overflow-wrap:anywhere}
+.col.s0 .bo{color:var(--a)}.col.s1 .bo{color:var(--b)}
+.addbet{min-height:44px;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;background:transparent}
+.col.s0 .addbet{border:1px dashed var(--a);color:var(--a)}
+.col.s1 .addbet{border:1px dashed var(--b);color:var(--b)}
+.empty{font-size:13px;color:var(--muted);padding:4px}
+
+.form.s0{border-color:var(--a)}.form.s1{border-color:var(--b)}
+.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--muted);min-width:0}
+.big{font:600 20px var(--font-num)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.seg{display:flex;gap:4px;background:var(--track);border-radius:12px;padding:4px}
+.seg button{flex:1;min-height:38px;border:0;border-radius:9px;background:transparent;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.derived{margin:0;font:13px var(--font-num);color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.derived b{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:38px;padding:0 12px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);font-size:13px;font-weight:500;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--pos-soft);border-color:var(--pos);color:var(--pos)}
+.lbl{font-size:12px;font-weight:600;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .primary{flex:1}
+
+.hside button.on.s0{background:var(--a);color:var(--a-on)}
+.hside button.on.s1{background:var(--b);color:var(--b-on)}
+.amt-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.amt-row label{font-size:14px}
+.amt{max-width:150px;text-align:right;font:600 24px var(--font-num);padding:6px 10px}
+.hs1 .amt{color:var(--b)}.hs0 .amt{color:var(--a)}
+input[type=range]{padding:0;border:0;background:transparent;height:32px;accent-color:var(--b)}
+.hs0 input[type=range]{accent-color:var(--a)}
+.scale{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted)}
+.scale b{color:var(--ink)}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.presets .btn{flex:1}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;font-weight:600;color:var(--muted);text-align:right;padding:6px 4px;border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{text-align:left}
+td{padding:9px 4px;border-bottom:1px solid var(--rule);text-align:right;vertical-align:top}
+td:first-child{overflow-wrap:anywhere}
+td.n,th.n{white-space:nowrap}
+tr.tot td{border-top:3px double var(--ink);font-weight:600;border-bottom:0}
+tr.net td{font-weight:700;font-size:15px;border-bottom:0}
+.hsum{margin:0;font-size:14px}
+
+.ledger{display:flex;flex-direction:column;gap:8px}
+.litem{border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.lhead{width:100%;min-height:48px;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 12px;border:0;background:var(--surface);font-weight:600;font-size:14px;cursor:pointer;text-align:left}
+.litem.open .lhead{background:var(--paper)}
+.lhead .chev{color:var(--muted);font-size:12px;margin-left:8px}
+.lbody{padding:4px 12px 10px}
+@media (max-width:420px){
+  .side-name{font-size:24px}
+  .evbar{flex-basis:100%;justify-content:stretch}
+  .evbar select{max-width:none}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top">
+    <a class="home" href="/">← BuGGy Builds</a>
+    <div class="evbar">
+      <label class="sr" for="evSel">Event</label>
+      <select id="evSel"></select>
+      <button type="button" class="btn sm" id="evNew">New event</button>
+      <button type="button" class="btn sm ghost" id="evDel">Delete</button>
+    </div>
+  </nav>
+
+  <header class="match">
+    <p class="brand">BetterBettor<b>+</b></p>
+    <div class="sides-in">
+      <label class="sr" for="sideA">First side</label>
+      <input id="sideA" class="side-name a" placeholder="Side A" autocomplete="off" maxlength="24">
+      <span class="vs">vs</span>
+      <label class="sr" for="sideB">Second side</label>
+      <input id="sideB" class="side-name b" placeholder="Side B" autocomplete="off" maxlength="24">
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <section class="card">
+    <div class="card-h"><h2>Where you stand</h2><button type="button" class="btn sm ghost" id="editOut">Edit outcomes</button></div>
+    <div id="stand" class="stand"></div>
+  </section>
+
+  <div class="cols" id="sides"></div>
+
+  <form class="card form" id="form" hidden novalidate>
+    <h2 id="fTitle">New bet</h2>
+    <label class="f" for="fName">Bet
+      <input id="fName" placeholder="ML · FanDuel" autocomplete="off" maxlength="40">
+    </label>
+    <div class="seg" role="group" aria-label="How to enter it">
+      <button type="button" data-fmode="back">Paid → gets back</button>
+      <button type="button" data-fmode="odds">Paid + odds</button>
+    </div>
+    <div class="two">
+      <label class="f" for="fPaid">Paid ($)
+        <input id="fPaid" class="big" inputmode="decimal" placeholder="100" autocomplete="off">
+      </label>
+      <label class="f" for="fBack" id="fBackWrap">Gets back ($)
+        <input id="fBack" class="big" inputmode="decimal" placeholder="235" autocomplete="off">
+      </label>
+      <label class="f" for="fOdds" id="fOddsWrap" hidden>Odds
+        <input id="fOdds" class="big" placeholder="+135" autocomplete="off">
+      </label>
+    </div>
+    <p class="derived" id="fDerived"></p>
+    <div id="fChipsWrap" class="f">
+      <span class="lbl">Pays if</span>
+      <div class="chips" id="fChips"></div>
+    </div>
+    <p class="err" id="fErr"></p>
+    <div class="actions">
+      <button type="button" class="btn" id="fCancel">Cancel</button>
+      <button type="button" class="btn danger" id="fDelete">Delete</button>
+      <button type="submit" class="btn primary" id="fSave">Add bet</button>
+    </div>
+  </form>
+
+  <section class="card" id="hedgeCard">
+    <h2>Hedge</h2>
+    <div class="seg hside" id="hSide" role="group" aria-label="Side to hedge on">
+      <button type="button" data-hside="0" class="s0">A</button>
+      <button type="button" data-hside="1" class="s1">B</button>
+    </div>
+    <label class="f" for="hOdds"><span>Odds on <span id="hSideName">B</span></span>
+      <input id="hOdds" class="big" placeholder="+200, 2.5 or 55¢" autocomplete="off">
+    </label>
+    <p class="err" id="hErr"></p>
+    <div class="amt-row">
+      <label for="hAmt">Hedge stake ($)</label>
+      <input id="hAmt" class="amt" inputmode="decimal" placeholder="0" autocomplete="off">
+    </div>
+    <label class="sr" for="hRange">Hedge stake slider</label>
+    <input type="range" id="hRange" min="0" max="100" step="1" value="0">
+    <div class="scale n"><span>$0</span><span id="hMark"></span><span id="hMax">$100</span></div>
+    <div class="presets">
+      <button type="button" class="btn sm" data-preset="even">Even out</button>
+      <button type="button" class="btn sm" data-preset="back">Stake back</button>
+      <button type="button" class="btn sm" data-preset="clear">Clear</button>
+    </div>
+    <div id="hOut"></div>
+    <button type="button" class="btn primary" id="hAdd">Add hedge as a bet</button>
+  </section>
+
+  <section class="card">
+    <h2>Ledger by outcome</h2>
+    <div id="ledger" class="ledger"></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const KEY = 'buggybuilds.bettor.v1';
+  const $ = (id) => document.getElementById(id);
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const r2 = (x) => Math.round(x * 100) / 100;
+  const usd0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const usd2 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
+  const isWhole = (x) => Math.abs(x - Math.round(x)) < 0.005;
+  const money = (x) => (x < -0.004 ? '−' : '') + (isWhole(x) ? usd0 : usd2).format(Math.abs(x));
+  const money2 = (x) => (x < -0.004 ? '−' : '') + usd2.format(Math.abs(x));
+  const signed = (x, two) => Math.abs(x) < 0.005 ? (two ? usd2 : usd0).format(0) : (x > 0 ? '+' : '−') + (two ? usd2 : (isWhole(x) ? usd0 : usd2)).format(Math.abs(x));
+  const tone = (x) => x > 0.004 ? 'pos' : x < -0.004 ? 'neg' : '';
+  const num = (s) => { const v = parseFloat(String(s).replace(/[$,\s]/g, '')); return isFinite(v) ? v : NaN; };
+
+  function american(d){
+    if (!(d > 1)) return 'n/a';
+    return d >= 2 ? '+' + Math.round((d - 1) * 100) : '−' + Math.round(100 / (d - 1));
+  }
+  // Odds in any form: +150 / -110 (American), 2.5 (decimal), 55¢ or 55c (Kalshi price).
+  function parseOdds(s){
+    const raw = String(s || '').trim().replace(/[−–]/g, '-').replace(/\s/g, '');
+    if (!raw) return null;
+    if (/[¢c]$/i.test(raw)) {
+      const c = parseFloat(raw);
+      return c >= 1 && c <= 99 ? 100 / c : null;
+    }
+    const v = parseFloat(raw);
+    if (!isFinite(v)) return null;
+    if (v >= 100) return 1 + v / 100;
+    if (v <= -100) return 1 + 100 / Math.abs(v);
+    if (v > 1 && !raw.startsWith('+') && !raw.startsWith('-')) return v;
+    return null;
+  }
+
+  /* ---------- State ---------- */
+  function exampleEvent(){
+    return {
+      id: uid(), example: true, sides: ['Chiefs', 'Bills'],
+      outcomes: [
+        { id: 'o1', side: 0, name: 'Chiefs by 4+' },
+        { id: 'o2', side: 0, name: 'Chiefs by 1–3' },
+        { id: 'o3', side: 1, name: '' }
+      ],
+      bets: [
+        { id: uid(), side: 0, name: 'Chiefs ML · FanDuel', paid: 100, back: 235, wins: ['o1', 'o2'] },
+        { id: uid(), side: 0, name: 'Chiefs −3.5 · DraftKings', paid: 55, back: 105, wins: ['o1'] },
+        { id: uid(), side: 1, name: 'Bills Yes · Kalshi', paid: 70, back: 120, wins: ['o3'] }
+      ],
+      hedge: { side: 1, odds: '+200', amt: '' }
+    };
+  }
+  function blankEvent(){
+    return {
+      id: uid(), sides: ['', ''],
+      outcomes: [{ id: uid(), side: 0, name: '' }, { id: uid(), side: 1, name: '' }],
+      bets: [], hedge: { side: 1, odds: '', amt: '' }
+    };
+  }
+  function load(){
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY));
+      if (s && Array.isArray(s.events) && s.events.length) return s;
+    } catch (e) {}
+    const ev = exampleEvent();
+    return { cur: ev.id, events: [ev] };
+  }
+  const store = load();
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  const ev = () => store.events.find((e) => e.id === store.cur) || store.events[0];
+
+  const sideName = (e, i) => (e.sides[i] || '').trim() || (i ? 'Side B' : 'Side A');
+  const outName = (e, o) => (o.name || '').trim() || `${sideName(e, o.side)} win`;
+  const sideOutcomes = (e, s) => e.outcomes.filter((o) => o.side === s).map((o) => o.id);
+  const evName = (e) => (e.sides[0] || e.sides[1]) ? `${sideName(e, 0)} vs ${sideName(e, 1)}` : 'New event';
+  function betName(e, b){
+    if ((b.name || '').trim()) return b.name.trim();
+    const same = e.bets.filter((x) => x.side === b.side);
+    return `${sideName(e, b.side)} bet ${same.indexOf(b) + 1}`;
+  }
+  function results(e, extra){
+    const bets = extra ? e.bets.concat([extra]) : e.bets;
+    const staked = bets.reduce((a, b) => a + b.paid, 0);
+    return e.outcomes.map((o) => {
+      const ret = bets.filter((b) => b.wins.includes(o.id)).reduce((a, b) => a + b.back, 0);
+      return { o, ret, net: ret - staked };
+    });
+  }
+
+  /* ---------- UI state (not saved) ---------- */
+  let editOutcomes = false;
+  let F = null; // open bet form
+  let ledgerOpen = null;
+  let delArmed = false, delTimer = 0;
+
+  /* ---------- Events bar ---------- */
+  function renderEvSel(){
+    $('evSel').innerHTML = store.events.map((e) => `<option value="${e.id}"${e.id === store.cur ? ' selected' : ''}>${esc(evName(e))}</option>`).join('');
+  }
+  function renderBanner(){
+    const e = ev();
+    $('banner').innerHTML = e.example
+      ? `<div class="banner"><span>These are example bets. Hit New event to start your own.</span><button type="button" class="btn sm ghost" id="dismissEx">Got it</button></div>`
+      : '';
+  }
+
+  /* ---------- Where you stand ---------- */
+  function renderStand(){
+    const e = ev(), box = $('stand');
+    $('editOut').textContent = editOutcomes ? 'Done' : 'Edit outcomes';
+    if (editOutcomes) {
+      const rows = e.outcomes.map((o) => {
+        const many = e.outcomes.filter((x) => x.side === o.side).length > 1;
+        return `<div class="orow"><span class="dot s${o.side}"></span>
+          <label class="sr" for="on-${o.id}">Outcome name</label>
+          <input id="on-${o.id}" data-oname="${o.id}" value="${esc(o.name)}" placeholder="${esc(sideName(e, o.side))} win" autocomplete="off" maxlength="32">
+          <button type="button" class="btn sm ghost" data-orm="${o.id}" aria-label="Remove ${esc(outName(e, o))}"${many ? '' : ' disabled'}>Remove</button></div>`;
+      }).join('');
+      box.innerHTML = `<div class="oedit">
+        <p class="hint">Split a side when a bet only pays on part of it, like a spread (win by 4+ vs. win by 1–3). Every outcome should be a different way the game can end.</p>
+        ${rows}
+        <div class="osplit">
+          <button type="button" class="btn sm" data-split="0">+ Split ${esc(sideName(e, 0))}</button>
+          <button type="button" class="btn sm" data-split="1">+ Split ${esc(sideName(e, 1))}</button>
+        </div></div>`;
+      return;
+    }
+    if (!e.bets.length) {
+      box.innerHTML = `<p class="hint">No bets yet. Add one to either side below.</p>`;
+      return;
+    }
+    const res = results(e);
+    const nets = res.map((r) => r.net);
+    const hi = Math.max(...nets), lo = Math.min(...nets);
+    const scale = Math.max(1, ...nets.map(Math.abs));
+    const staked = e.bets.reduce((a, b) => a + b.paid, 0);
+    const rows = res.map((r) => {
+      const w = Math.abs(r.net) / scale * 50;
+      const tags = hi - lo > 0.004 ? (r.net === hi ? '<span class="tag best">BEST</span>' : r.net === lo ? '<span class="tag worst">WORST</span>' : '') : '';
+      return `<div class="srow">
+        <div class="srow-h"><span>${esc(outName(e, r.o))}${tags}</span><span class="n ${tone(r.net)}" style="font-weight:600">${signed(r.net)}</span></div>
+        <div class="bar" aria-hidden="true"><i class="${r.net >= 0 ? 'p' : 'm'}" style="width:${w.toFixed(1)}%"></i></div>
+      </div>`;
+    }).join('');
+    let pill;
+    if (lo > 0.004) pill = `<span class="pill good">Profit locked: ${signed(lo)} or better</span>`;
+    else if (hi < -0.004) pill = `<span class="pill bad">Loses on every outcome</span>`;
+    else pill = `<span class="pill flat">${money(hi - lo)} between best and worst</span>`;
+    box.innerHTML = `${rows}<div class="sfoot"><span class="n">${money(staked)} staked across ${e.bets.length} bet${e.bets.length === 1 ? '' : 's'}</span>${pill}</div>`;
+  }
+
+  /* ---------- Side columns ---------- */
+  function renderSides(){
+    const e = ev();
+    $('sides').innerHTML = [0, 1].map((s) => {
+      const all = sideOutcomes(e, s);
+      const cards = e.bets.filter((b) => b.side === s).map((b) => {
+        const d = b.back / b.paid;
+        let note = '';
+        if (!b.wins.length) note = ' · <span class="neg">pays on nothing</span>';
+        else if (!(b.wins.length === all.length && all.every((id) => b.wins.includes(id)))) {
+          note = ' · only ' + b.wins.map((id) => e.outcomes.find((o) => o.id === id)).filter(Boolean).map((o) => esc(outName(e, o))).join(', ');
+        }
+        return `<button type="button" class="bet${F && F.editId === b.id ? ' editing' : ''}" data-edit="${b.id}">
+          <span class="bn">${esc(betName(e, b))}</span>
+          <span class="ba n">${money(b.paid)} → ${money(b.back)}</span>
+          <span class="bo n">${american(d)}${note}</span>
+        </button>`;
+      }).join('');
+      return `<section class="col s${s}">
+        <h3>${esc(sideName(e, s))} side</h3>
+        ${cards || '<span class="empty">No bets</span>'}
+        <button type="button" class="addbet" data-add="${s}">+ ${esc(sideName(e, s))} bet</button>
+      </section>`;
+    }).join('');
+  }
+
+  /* ---------- Bet form ---------- */
+  function openForm(side, bet){
+    const e = ev();
+    F = bet
+      ? { side: bet.side, editId: bet.id, mode: 'back', wins: bet.wins.slice() }
+      : { side, editId: null, mode: 'back', wins: sideOutcomes(e, side) };
+    $('fName').value = bet ? bet.name : '';
+    $('fPaid').value = bet ? bet.paid : '';
+    $('fBack').value = bet ? bet.back : '';
+    $('fOdds').value = bet ? american(bet.back / bet.paid).replace('−', '-') : '';
+    $('fErr').textContent = '';
+    $('form').hidden = false;
+    renderForm();
+    renderSides();
+    $('form').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    setTimeout(() => (bet ? $('fName') : $('fPaid')).focus({ preventScroll: true }), 250);
+  }
+  function closeForm(){
+    F = null; $('form').hidden = true; renderSides();
+  }
+  function formBack(){
+    const p = num($('fPaid').value);
+    if (F.mode === 'odds') { const d = parseOdds($('fOdds').value); return p > 0 && d ? r2(p * d) : NaN; }
+    return num($('fBack').value);
+  }
+  function renderForm(){
+    if (!F) return;
+    const e = ev(), form = $('form');
+    form.className = `card form s${F.side}`;
+    $('fTitle').textContent = F.editId ? `Edit ${sideName(e, F.side)} bet` : `New ${sideName(e, F.side)} bet`;
+    $('fSave').textContent = F.editId ? 'Save' : `Add to ${sideName(e, F.side)}`;
+    $('fDelete').hidden = !F.editId;
+    form.querySelectorAll('[data-fmode]').forEach((b) => b.classList.toggle('on', b.dataset.fmode === F.mode));
+    $('fBackWrap').hidden = F.mode !== 'back';
+    $('fOddsWrap').hidden = F.mode !== 'odds';
+    renderDerived();
+    const showChips = e.outcomes.length > 2;
+    $('fChipsWrap').hidden = !showChips;
+    if (showChips) {
+      $('fChips').innerHTML = e.outcomes.map((o) => `<button type="button" class="chip" data-chip="${o.id}" aria-pressed="${F.wins.includes(o.id)}">${esc(outName(e, o))}</button>`).join('');
+    }
+  }
+  function renderDerived(){
+    const p = num($('fPaid').value), b = formBack(), out = $('fDerived');
+    if (!(p > 0) || !(b > 0)) {
+      out.innerHTML = F.mode === 'odds' ? '<span>Enter what you paid and the odds.</span>' : '<span>Enter what you paid and what it pays back.</span>';
+      return;
+    }
+    const d = b / p;
+    let h = '';
+    if (F.mode === 'odds') h += `<span>Gets back <b>${money(b)}</b></span>`;
+    h += `<span>Odds <b>${american(d)}</b></span><span>${d.toFixed(2)} dec</span><span>${(100 / d).toFixed(1)}% implied</span><span>Wins <b class="${tone(b - p)}">${signed(b - p)}</b></span>`;
+    if (d <= 1) h += '<span class="neg">That pays back no more than you paid.</span>';
+    out.innerHTML = h;
+  }
+  function saveForm(){
+    const e = ev();
+    const p = num($('fPaid').value), b = formBack();
+    if (!(p > 0)) { $('fErr').textContent = 'Enter what you paid.'; return; }
+    if (!(b > 0)) { $('fErr').textContent = F.mode === 'odds' ? 'Enter odds like +150, -110, 2.5 or 55¢.' : 'Enter what the bet pays back, your stake included.'; return; }
+    const wins = e.outcomes.length > 2 ? F.wins.filter((id) => e.outcomes.some((o) => o.id === id)) : sideOutcomes(e, F.side);
+    if (!wins.length) { $('fErr').textContent = 'Pick at least one outcome this bet pays on.'; return; }
+    const data = { side: F.side, name: $('fName').value.trim(), paid: r2(p), back: r2(b), wins };
+    if (F.editId) Object.assign(e.bets.find((x) => x.id === F.editId), data);
+    else e.bets.push(Object.assign({ id: uid() }, data));
+    F = null; $('form').hidden = true;
+    save(); refresh();
+  }
+
+  /* ---------- Hedge ---------- */
+  function hedgeMath(){
+    const e = ev(), H = e.hedge;
+    const d = parseOdds(H.odds);
+    const W = sideOutcomes(e, H.side);
+    const base = results(e);
+    const inW = base.filter((r) => W.includes(r.o.id)), outW = base.filter((r) => !W.includes(r.o.id));
+    const minW = inW.length ? Math.min(...inW.map((r) => r.net)) : 0;
+    const minN = outW.length ? Math.min(...outW.map((r) => r.net)) : 0;
+    let even = 0, back = 0;
+    if (d) {
+      if (outW.length) even = Math.max(0, (minN - minW) / d);
+      if (minW < 0) back = -minW / (d - 1);
+    }
+    const staked = e.bets.reduce((a, b) => a + b.paid, 0);
+    const amt = num(H.amt);
+    return { e, H, d, W, base, even, back, staked, amt: amt > 0 ? amt : 0 };
+  }
+  function renderHedge(syncInputs){
+    const m = hedgeMath(), e = m.e;
+    $('hedgeCard').className = `card hs${m.H.side}`;
+    document.querySelectorAll('[data-hside]').forEach((b) => {
+      b.textContent = sideName(e, +b.dataset.hside);
+      b.classList.toggle('on', +b.dataset.hside === m.H.side);
+    });
+    $('hSideName').textContent = sideName(e, m.H.side);
+    $('hErr').textContent = m.H.odds && !m.d ? 'Use odds like +200, -150, 2.5 or 55¢.' : '';
+    const max = Math.max(50, Math.ceil(Math.max(m.even * 2, m.back * 1.25, m.staked, m.amt) / 10) * 10);
+    const range = $('hRange');
+    range.max = String(max);
+    if (syncInputs) {
+      range.value = String(Math.round(m.amt));
+      if (document.activeElement !== $('hAmt')) $('hAmt').value = m.H.amt;
+      if (document.activeElement !== $('hOdds')) $('hOdds').value = m.H.odds;
+    }
+    $('hMax').textContent = usd0.format(max);
+    renderHedgeOut(m);
+  }
+  function renderHedgeOut(m){
+    m = m || hedgeMath();
+    const e = m.e, out = $('hOut'), mark = $('hMark');
+    $('hAdd').textContent = `Add hedge as a ${sideName(e, m.H.side)} bet`;
+    $('hAdd').disabled = !(m.d && m.amt > 0);
+    if (!e.bets.length) { mark.textContent = ''; out.innerHTML = '<p class="hint">Add a bet first, then size a hedge against it.</p>'; return; }
+    if (!m.d) { mark.textContent = ''; out.innerHTML = `<p class="hint">Enter the odds you can get on ${esc(sideName(e, m.H.side))} to size a hedge.</p>`; return; }
+    mark.innerHTML = m.even > 0.5 ? `Evens out at <b>${money(Math.round(m.even))}</b>` : 'This side won’t lift your worst case';
+    const H = m.amt;
+    const rows = m.base.map((r) => {
+      const after = r.net + (m.W.includes(r.o.id) ? H * (m.d - 1) : -H);
+      return { name: outName(e, r.o), now: r.net, after };
+    });
+    const worstNow = Math.min(...rows.map((r) => r.now)), worstAfter = Math.min(...rows.map((r) => r.after));
+    const bestAfter = Math.max(...rows.map((r) => r.after));
+    const body = rows.map((r, i) => `<tr${i === rows.length - 1 ? ' class="last"' : ''}><td>${esc(r.name)}</td><td class="n ${tone(r.now)}">${signed(r.now)}</td><td class="n ${tone(r.after)}" style="font-weight:600">${signed(r.after)}</td></tr>`).join('');
+    const sum = H > 0
+      ? `<p class="hsum">Bet <b class="n">${money(H)}</b> on ${esc(sideName(e, m.H.side))} at <b class="n">${american(m.d)}</b>. Worst case goes from <b class="n ${tone(worstNow)}">${signed(worstNow)}</b> to <b class="n ${tone(worstAfter)}">${signed(worstAfter)}</b>, best case <b class="n ${tone(bestAfter)}">${signed(bestAfter)}</b>.</p>`
+      : `<p class="hint">Drag the slider or tap Even out.</p>`;
+    out.innerHTML = `${sum}<table><thead><tr><th>Outcome</th><th class="n">Now</th><th class="n">With hedge</th></tr></thead><tbody>${body}</tbody></table>`;
+  }
+
+  /* ---------- Ledger ---------- */
+  function renderLedger(){
+    const e = ev(), box = $('ledger');
+    if (!e.bets.length) { box.innerHTML = '<p class="hint">Your debits and credits show up here once you add a bet.</p>'; return; }
+    const res = results(e);
+    if (ledgerOpen !== '__none' && (!ledgerOpen || !e.outcomes.some((o) => o.id === ledgerOpen))) {
+      ledgerOpen = res.reduce((a, r) => (r.net < a.net ? r : a), res[0]).o.id;
+    }
+    const staked = e.bets.reduce((a, b) => a + b.paid, 0);
+    box.innerHTML = res.map((r) => {
+      const open = r.o.id === ledgerOpen;
+      let inner = '';
+      if (open) {
+        const deb = e.bets.map((b) => `<tr><td>${esc(betName(e, b))} stake</td><td class="n neg">${money2(b.paid)}</td><td></td></tr>`).join('');
+        const cred = e.bets.filter((b) => b.wins.includes(r.o.id)).map((b) => `<tr><td>${esc(betName(e, b))} payout</td><td></td><td class="n pos">${money2(b.back)}</td></tr>`).join('');
+        inner = `<div class="lbody"><table>
+          <thead><tr><th>Entry</th><th class="n">Debit</th><th class="n">Credit</th></tr></thead>
+          <tbody>${deb}${cred || '<tr><td>Nothing pays out</td><td></td><td class="n">$0.00</td></tr>'}</tbody>
+          <tfoot>
+            <tr class="tot"><td>Totals</td><td class="n neg">${money2(staked)}</td><td class="n pos">${money2(r.ret)}</td></tr>
+            <tr class="net"><td>Net</td><td></td><td class="n ${tone(r.net)}">${signed(r.net, true)}</td></tr>
+          </tfoot></table></div>`;
+      }
+      return `<div class="litem${open ? ' open' : ''}">
+        <button type="button" class="lhead" data-ledger="${r.o.id}" aria-expanded="${open}"><span>If ${esc(outName(e, r.o))}</span><span><span class="n ${tone(r.net)}">${signed(r.net, true)}</span><span class="chev" aria-hidden="true">${open ? '▲' : '▼'}</span></span></button>
+        ${inner}</div>`;
+    }).join('');
+  }
+
+  /* ---------- Render ---------- */
+  function refresh(){
+    renderEvSel(); renderBanner(); renderStand(); renderSides(); renderForm(); renderHedge(true); renderLedger();
+  }
+  function renderAll(){
+    const e = ev();
+    $('sideA').value = e.sides[0]; $('sideB').value = e.sides[1];
+    refresh();
+  }
+
+  /* ---------- Wiring ---------- */
+  $('evSel').addEventListener('change', (x) => { store.cur = x.target.value; F = null; $('form').hidden = true; editOutcomes = false; ledgerOpen = null; save(); renderAll(); });
+  $('evNew').addEventListener('click', () => {
+    const e = blankEvent(); store.events.unshift(e); store.cur = e.id;
+    F = null; $('form').hidden = true; editOutcomes = false; ledgerOpen = null;
+    save(); renderAll(); $('sideA').focus();
+  });
+  $('evDel').addEventListener('click', () => {
+    if (!delArmed) {
+      delArmed = true; $('evDel').textContent = 'Tap again to delete';
+      clearTimeout(delTimer); delTimer = setTimeout(() => { delArmed = false; $('evDel').textContent = 'Delete'; }, 3000);
+      return;
+    }
+    clearTimeout(delTimer); delArmed = false; $('evDel').textContent = 'Delete';
+    store.events = store.events.filter((e) => e.id !== store.cur);
+    if (!store.events.length) store.events.push(blankEvent());
+    store.cur = store.events[0].id;
+    F = null; $('form').hidden = true; editOutcomes = false; ledgerOpen = null;
+    save(); renderAll();
+  });
+  $('banner').addEventListener('click', (x) => {
+    if (x.target.id !== 'dismissEx') return;
+    delete ev().example; save(); renderBanner();
+  });
+
+  ['sideA', 'sideB'].forEach((id, i) => $(id).addEventListener('input', (x) => {
+    ev().sides[i] = x.target.value; save();
+    renderEvSel(); if (!editOutcomes) renderStand(); renderSides(); renderForm(); renderHedge(false); renderLedger();
+  }));
+
+  $('editOut').addEventListener('click', () => { editOutcomes = !editOutcomes; renderStand(); });
+  $('stand').addEventListener('input', (x) => {
+    const id = x.target.dataset.oname; if (!id) return;
+    ev().outcomes.find((o) => o.id === id).name = x.target.value; save();
+    renderSides(); renderForm(); renderHedgeOut(); renderLedger();
+  });
+  $('stand').addEventListener('click', (x) => {
+    const e = ev();
+    const rm = x.target.closest('[data-orm]');
+    if (rm && !rm.disabled) {
+      const id = rm.dataset.orm;
+      e.outcomes = e.outcomes.filter((o) => o.id !== id);
+      e.bets.forEach((b) => { b.wins = b.wins.filter((w) => w !== id); });
+      if (F) F.wins = F.wins.filter((w) => w !== id);
+      save(); refresh(); return;
+    }
+    const sp = x.target.closest('[data-split]');
+    if (sp) {
+      const s = +sp.dataset.split, before = sideOutcomes(e, s);
+      if (before.length >= 4) return;
+      if (before.length === 1) { const o = e.outcomes.find((z) => z.id === before[0]); if (!o.name.trim()) o.name = `${sideName(e, s)} win · 1`; }
+      const n = { id: uid(), side: s, name: `${sideName(e, s)} win · ${before.length + 1}` };
+      const last = e.outcomes.map((o) => o.side).lastIndexOf(s);
+      e.outcomes.splice(last + 1, 0, n);
+      // Bets that paid on the whole side keep paying on the whole side.
+      e.bets.forEach((b) => { if (b.side === s && before.every((id) => b.wins.includes(id))) b.wins.push(n.id); });
+      if (F && F.side === s && before.every((id) => F.wins.includes(id))) F.wins.push(n.id);
+      save(); refresh();
+      const inp = $('on-' + n.id); if (inp) { inp.focus(); inp.select(); }
+    }
+  });
+
+  $('sides').addEventListener('click', (x) => {
+    const add = x.target.closest('[data-add]');
+    if (add) { openForm(+add.dataset.add, null); return; }
+    const ed = x.target.closest('[data-edit]');
+    if (ed) { const b = ev().bets.find((z) => z.id === ed.dataset.edit); if (b) openForm(b.side, b); }
+  });
+
+  $('form').addEventListener('submit', (x) => { x.preventDefault(); saveForm(); });
+  $('form').addEventListener('input', () => { if (F) { $('fErr').textContent = ''; renderDerived(); } });
+  $('form').addEventListener('click', (x) => {
+    if (!F) return;
+    const m = x.target.closest('[data-fmode]');
+    if (m) {
+      if (m.dataset.fmode === 'odds' && F.mode !== 'odds') {
+        const p = num($('fPaid').value), b = num($('fBack').value);
+        if (p > 0 && b > p) $('fOdds').value = american(b / p).replace('−', '-');
+      }
+      if (m.dataset.fmode === 'back' && F.mode !== 'back') {
+        const b = formBack(); if (b > 0) $('fBack').value = b;
+      }
+      F.mode = m.dataset.fmode; renderForm(); return;
+    }
+    const c = x.target.closest('[data-chip]');
+    if (c) {
+      const id = c.dataset.chip;
+      F.wins = F.wins.includes(id) ? F.wins.filter((w) => w !== id) : F.wins.concat([id]);
+      c.setAttribute('aria-pressed', String(F.wins.includes(id))); return;
+    }
+  });
+  $('fCancel').addEventListener('click', closeForm);
+  $('fDelete').addEventListener('click', () => {
+    if (!F || !F.editId) return;
+    const e = ev(); e.bets = e.bets.filter((b) => b.id !== F.editId);
+    F = null; $('form').hidden = true; save(); refresh();
+  });
+
+  $('hSide').addEventListener('click', (x) => {
+    const b = x.target.closest('[data-hside]'); if (!b) return;
+    ev().hedge.side = +b.dataset.hside; ev().hedge.amt = ''; save(); renderHedge(true);
+  });
+  $('hOdds').addEventListener('input', (x) => { ev().hedge.odds = x.target.value; save(); renderHedge(true); });
+  $('hAmt').addEventListener('input', (x) => { ev().hedge.amt = x.target.value; save(); renderHedge(true); });
+  $('hRange').addEventListener('input', (x) => {
+    const v = x.target.value; ev().hedge.amt = v === '0' ? '' : v; $('hAmt').value = ev().hedge.amt; save(); renderHedgeOut();
+  });
+  document.querySelector('.presets').addEventListener('click', (x) => {
+    const p = x.target.closest('[data-preset]'); if (!p) return;
+    const m = hedgeMath(), H = ev().hedge;
+    if (p.dataset.preset === 'clear') H.amt = '';
+    else if (!m.d) { $('hErr').textContent = 'Enter the odds on this side first.'; $('hOdds').focus(); return; }
+    else if (p.dataset.preset === 'even') H.amt = m.even > 0.5 ? String(Math.round(m.even)) : '';
+    else H.amt = m.back > 0 ? String(Math.ceil(m.back)) : '';
+    save(); renderHedge(true);
+  });
+  $('hAdd').addEventListener('click', () => {
+    const m = hedgeMath(); if (!(m.d && m.amt > 0)) return;
+    const e = m.e;
+    e.bets.push({ id: uid(), side: m.H.side, name: `Hedge ${american(m.d)}`, paid: r2(m.amt), back: r2(m.amt * m.d), wins: m.W.slice() });
+    m.H.amt = '';
+    save(); refresh();
+  });
+
+  $('ledger').addEventListener('click', (x) => {
+    const b = x.target.closest('[data-ledger]'); if (!b) return;
+    ledgerOpen = ledgerOpen === b.dataset.ledger ? '__none' : b.dataset.ledger;
+    renderLedger();
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
