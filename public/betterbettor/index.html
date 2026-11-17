@@ -161,7 +161,7 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
 .litem.open .lhead{background:var(--paper)}
 .lhead .chev{color:var(--muted);font-size:12px;margin-left:8px}
 .lbody{padding:4px 12px 10px}
-.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--track);border-radius:14px;padding:4px;position:sticky;top:8px;z-index:5}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--track);border-radius:14px;padding:4px;position:sticky;top:8px;z-index:5}
 .tabs button{min-height:42px;border:0;border-radius:10px;background:transparent;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.16)}
 .panel{display:flex;flex-direction:column;gap:14px}
@@ -201,6 +201,22 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
 input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:calc(100% - 32px)}
 .toast.on{opacity:1}
+.sbet{border:1px solid var(--rule);border-left:4px solid var(--a);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.sbet.s1{border-left-color:var(--b)}
+.sbet .seg{flex:1;min-width:0}
+.sbet .seg button{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pmrow{display:flex;gap:6px}
+.pm{width:52px;flex:none;min-height:44px;border-radius:10px;border:1px solid var(--rule);background:var(--surface);font:600 24px var(--font-num);cursor:pointer}
+.pm.plus{color:var(--pos)}.pm.minus{color:var(--neg)}
+.addbet.sA{border:1px dashed var(--a);color:var(--a)}.addbet.sB{border:1px dashed var(--b);color:var(--b)}
+.mlabel{font:700 28px var(--font-display);text-align:center;margin:0;overflow-wrap:anywhere}
+.mlabel.a{color:var(--a)}.mlabel.b{color:var(--b)}
+.mbars{display:flex;align-items:stretch;height:130px;gap:2px;position:relative}
+.mbars::after{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px solid var(--rule);pointer-events:none}
+.mbar{flex:1;position:relative;border:0;background:transparent;padding:0;cursor:pointer;min-width:0;border-radius:3px}
+.mbar i{position:absolute;left:12%;right:12%;border-radius:2px}
+.mbar.sel{background:var(--track)}
+.mbar.sel i{left:0;right:0}
 @media (max-width:420px){
   .side-name{font-size:24px}
   .evbar{flex-basis:100%;justify-content:stretch}
@@ -212,7 +228,7 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
 <body>
 <div class="wrap">
   <nav class="top">
-    <div class="topl"><a class="home" href="/">← BuGGy Builds</a><span class="sync" id="sync"></span><button type="button" class="btn sm ghost" id="bookBtn">Lock</button></div>
+    <div class="topl"><a class="home" href="/">← BuGGy Builds</a><span class="sync" id="sync"></span><button type="button" class="btn sm ghost" id="bookBtn">Lock</button><button type="button" class="btn sm ghost" id="pcBtn" hidden>Passcode</button></div>
     <div class="evbar">
       <label class="sr" for="evSel">Event</label>
       <select id="evSel"></select>
@@ -237,6 +253,7 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
   <nav class="tabs" role="tablist" aria-label="BetterBettor+">
     <button type="button" role="tab" data-tab="bets" aria-controls="pBets">Bets</button>
     <button type="button" role="tab" data-tab="live" aria-controls="pLive">Live</button>
+    <button type="button" role="tab" data-tab="spread" aria-controls="pSpread">Spread</button>
     <button type="button" role="tab" data-tab="bank" aria-controls="pBank">Bankroll</button>
   </nav>
 
@@ -385,6 +402,38 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
     </section>
   </div>
 
+  <!-- SPREAD -->
+  <div id="pSpread" class="panel" role="tabpanel" hidden>
+    <section class="card">
+      <h2>Spread bets</h2>
+      <p class="hint">Tap + / − to set the spread. Leave it blank and the bet counts as moneyline.</p>
+      <div id="spBets" class="ledger"></div>
+      <div class="two">
+        <button type="button" class="addbet sA" data-spadd="0" id="spAddA"></button>
+        <button type="button" class="addbet sB" data-spadd="1" id="spAddB"></button>
+      </div>
+      <label class="checkrow" id="spIncWrap" for="spInc"><input type="checkbox" id="spInc"> <span id="spIncTxt"></span></label>
+    </section>
+    <section class="card">
+      <h2>Final margin</h2>
+      <p class="mlabel" id="spLabel"></p>
+      <input type="range" id="spSlider" aria-label="Final margin">
+      <div class="scale"><span id="spEndB"></span><span id="spEndA"></span></div>
+      <div class="two">
+        <label class="f" for="spRange">Slider range (±)<input id="spRange" inputmode="decimal" autocomplete="off" placeholder="12"></label>
+        <label class="f" for="spStep">Step<input id="spStep" inputmode="decimal" autocomplete="off" placeholder="1"></label>
+      </div>
+    </section>
+    <section class="card">
+      <h2>At this score</h2>
+      <div id="spOut"></div>
+    </section>
+    <section class="card" id="spChartCard">
+      <h2>Net at every margin</h2>
+      <div id="spChart"></div>
+    </section>
+  </div>
+
   <!-- BANKROLL -->
   <div id="pBank" class="panel" role="tabpanel" hidden>
     <section class="card">
@@ -417,7 +466,7 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
     <h1 class="gate-h">Open your book</h1>
     <p class="hint">Your passcode opens your own book. It's saved on the site, so it syncs between your phone and laptop. A new passcode starts a new book.</p>
     <label class="f" for="gateCode">Passcode
-      <input id="gateCode" type="password" autocomplete="current-password" placeholder="6 or more characters">
+      <input id="gateCode" class="big" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" placeholder="6 or more numbers">
     </label>
     <label class="checkrow" for="gateShow"><input type="checkbox" id="gateShow"> Show passcode</label>
     <p class="err" id="gateErr"></p>
@@ -429,6 +478,22 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
     <button type="submit" class="btn primary" id="gateOpen">Open book</button>
     <button type="button" class="btn ghost" id="gateLocal">Use without a passcode (this device only)</button>
     <p class="hint">Anyone who types the same passcode opens the same book, so pick something only you would use.</p>
+  </form>
+</div>
+<div id="pcDlg" class="gate" hidden>
+  <form class="card gate-card" id="pcForm" novalidate>
+    <p class="brand">BetterBettor<b>+</b></p>
+    <h1 class="gate-h">Change passcode</h1>
+    <p class="hint">Your book moves to the new passcode with everything in it. The old passcode stops working, and your other devices will ask for the new one.</p>
+    <label class="f" for="pcCode">New passcode
+      <input id="pcCode" class="big" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="6 or more numbers">
+    </label>
+    <label class="f" for="pcCode2">Type it again
+      <input id="pcCode2" class="big" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" placeholder="Same numbers">
+    </label>
+    <p class="err" id="pcErr"></p>
+    <button type="submit" class="btn primary" id="pcSave">Change passcode</button>
+    <button type="button" class="btn ghost" id="pcCancel">Cancel</button>
   </form>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -1001,21 +1066,131 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
     }).join('') : '<p class="hint">Nothing settled yet.</p>';
   }
 
+  /* ---------- Spread ---------- */
+  // Spread bets live on the event (ev.spread) so they sync with the book. Margin m = side A score − side B score.
+  function sp(e){ if (!e.spread) e.spread = { bets: [], range: '12', step: '1', m: 0, inc: true }; return e.spread; }
+  function lineOf(b){ const t = String(b.line || '').trim(); const v = num(t); return t && isFinite(v) ? (b.sign === '-' ? -1 : 1) * Math.abs(v) : null; }
+  const lineTxt = (L) => L === null ? 'ML' : (L > 0 ? '+' : L < 0 ? '−' : '') + Math.abs(L);
+  function spreadLegs(e){
+    const S = sp(e), legs = [];
+    S.bets.forEach((b) => {
+      const d = parseOdds(b.odds), paid = num(b.paid); if (!(paid > 0) || !d) return;
+      const L = lineOf(b);
+      legs.push({ side: b.side, paid, back: paid * d, L, d, label: `${sideName(e, b.side)} ${lineTxt(L)}` });
+    });
+    if (S.inc && e.outcomes.length === 2) {
+      const o0 = e.outcomes.find((o) => o.side === 0), o1 = e.outcomes.find((o) => o.side === 1);
+      e.bets.forEach((b) => {
+        const w0 = b.wins.includes(o0.id), w1 = b.wins.includes(o1.id);
+        legs.push({ side: w0 ? 0 : 1, paid: b.paid, back: b.back, L: null, d: b.paid ? b.back / b.paid : 0, both: w0 && w1, none: !w0 && !w1, label: `${betName(e, b)} · ML` });
+      });
+    }
+    return legs;
+  }
+  function settleLeg(g, m){
+    if (g.none) return { r: 'L', ret: 0 };
+    if (g.both) return { r: 'W', ret: g.back };
+    const x = (g.side === 0 ? m : -m) + (g.L || 0);
+    return x > 1e-9 ? { r: 'W', ret: g.back } : x < -1e-9 ? { r: 'L', ret: 0 } : { r: 'P', ret: g.paid };
+  }
+  const netAt = (legs, m) => legs.reduce((a, g) => a + settleLeg(g, m).ret - g.paid, 0);
+  function spGrid(S){
+    const R = Math.min(200, Math.max(1, num(S.range) || 12)), st = Math.min(R, Math.max(0.5, num(S.step) || 1));
+    const pts = []; for (let k = -Math.floor(R / st); k <= Math.floor(R / st); k++) pts.push(Math.round(k * st * 100) / 100);
+    return { R, st, pts };
+  }
+  const marginTxt = (e, m) => m === 0 ? 'Tie' : `${sideName(e, m > 0 ? 0 : 1)} by ${Math.abs(m)}`;
+  function spDerived(b){
+    const d = parseOdds(b.odds), paid = num(b.paid);
+    if (!(paid > 0)) return 'Enter what you paid.';
+    if (!d) return 'Odds like 2.05, −110 or 55¢.';
+    return `Pays <b>${money(paid * d)}</b> · profit <b>${signed(paid * d - paid)}</b> · ${american(d)}`;
+  }
+  function renderSpread(full){
+    const e = ev(), S = sp(e);
+    if (full) {
+      $('spBets').innerHTML = S.bets.length ? S.bets.map((b) => `<div class="sbet s${b.side}" data-sid="${b.id}">
+        <div class="card-h"><div class="seg hside">${[0, 1].map((s) => `<button type="button" class="s${s}${b.side === s ? ' on' : ''}" data-sside="${s}">${esc(sideName(e, s))}</button>`).join('')}</div><button type="button" class="btn sm ghost" data-sdel aria-label="Remove bet">✕</button></div>
+        <div class="two"><label class="f">Paid ($)<input class="big" inputmode="decimal" data-sf="paid" value="${esc(b.paid)}" placeholder="20" autocomplete="off"></label><label class="f">Odds<input class="big" data-sf="odds" value="${esc(b.odds)}" placeholder="2.05" autocomplete="off"></label></div>
+        <div class="f">Spread<div class="pmrow"><button type="button" class="pm ${b.sign === '-' ? 'minus' : 'plus'}" data-ssign aria-label="Switch between plus and minus">${b.sign === '-' ? '−' : '+'}</button><input class="big" inputmode="decimal" data-sf="line" value="${esc(b.line)}" placeholder="Moneyline" autocomplete="off" aria-label="Spread points"></div></div>
+        <p class="derived" data-sd>${spDerived(b)}</p></div>`).join('') : '<p class="empty">No spread bets yet.</p>';
+      $('spAddA').textContent = `+ ${sideName(e, 0)} bet`; $('spAddB').textContent = `+ ${sideName(e, 1)} bet`;
+      const nb = e.bets.length;
+      $('spIncWrap').hidden = !nb;
+      $('spInc').checked = !!S.inc; $('spInc').disabled = e.outcomes.length !== 2;
+      $('spIncTxt').textContent = e.outcomes.length === 2 ? `Count my ${nb} bet${nb === 1 ? '' : 's'} from the Bets tab as moneyline` : 'Bets tab bets are left out while a side is split. Add them here instead.';
+      $('spRange').value = S.range; $('spStep').value = S.step;
+    }
+    renderSpreadOut();
+  }
+  function renderSpreadOut(){
+    const e = ev(), S = sp(e), { R, st, pts } = spGrid(S), legs = spreadLegs(e);
+    let m = Math.round((+S.m || 0) / st) * st; m = Math.max(-R, Math.min(R, Math.round(m * 100) / 100)); S.m = m;
+    const sl = $('spSlider'); sl.min = -Math.floor(R / st) * st; sl.max = Math.floor(R / st) * st; sl.step = st; sl.value = m;
+    sl.style.accentColor = m > 0 ? 'var(--a)' : m < 0 ? 'var(--b)' : 'var(--muted)';
+    const lab = $('spLabel'); lab.textContent = marginTxt(e, m); lab.className = 'mlabel' + (m > 0 ? ' a' : m < 0 ? ' b' : '');
+    $('spEndB').textContent = `${sideName(e, 1)} by ${sl.max}`; $('spEndA').textContent = `${sideName(e, 0)} by ${sl.max}`;
+    if (!legs.length) { $('spOut').innerHTML = '<p class="hint">Add a bet above to see what it pays at each score.</p>'; $('spChartCard').hidden = true; return; }
+    $('spChartCard').hidden = false;
+    let staked = 0, ret = 0;
+    const word = { W: ['Win', 'good'], L: ['Loss', 'bad'], P: ['Push', 'flat'] };
+    const rows = legs.map((g) => { const r = settleLeg(g, m); staked += g.paid; ret += r.ret;
+      return `<tr><td>${esc(g.label)}<div class="sub n">${money(g.paid)}${g.d ? ' at ' + american(g.d) : ''}</div></td><td class="n"><span class="pill ${word[r.r][1]}">${word[r.r][0]}</span></td><td class="n">${money(r.ret)}</td></tr>`; }).join('');
+    const net = ret - staked;
+    $('spOut').innerHTML = `<table><thead><tr><th>Bet</th><th class="n">Result</th><th class="n">Pays</th></tr></thead><tbody>${rows}
+      <tr class="tot"><td>Staked</td><td></td><td class="n">${money(staked)}</td></tr>
+      <tr><td>Returns</td><td></td><td class="n">${money(ret)}</td></tr>
+      <tr class="net"><td>Net</td><td></td><td class="n ${tone(net)}">${signed(net, true)}</td></tr></tbody></table>`;
+    const nets = pts.map((x) => netAt(legs, x)), mx = Math.max(1, ...nets.map(Math.abs));
+    const hi = Math.max(...nets), lo = Math.min(...nets);
+    const wins = pts.filter((x, k) => nets[k] > 0.004);
+    $('spChart').innerHTML = `<div class="mbars">${pts.map((x, k) => { const v = nets[k], h = Math.abs(v) / mx * 50;
+      const col = v > 0.004 ? 'var(--pos)' : v < -0.004 ? 'var(--neg)' : 'var(--muted)';
+      return `<button type="button" class="mbar${Math.abs(x - m) < 1e-9 ? ' sel' : ''}" data-m="${x}" aria-label="${esc(marginTxt(e, x))}: ${signed(v, true)}"><i style="background:${col};${v >= 0 ? `bottom:50%;height:${Math.max(h, 1.5)}%` : `top:50%;height:${h}%`}"></i></button>`; }).join('')}</div>
+      <div class="scale"><span>${esc(sideName(e, 1))} by ${sl.max}</span><span>Tie</span><span>${esc(sideName(e, 0))} by ${sl.max}</span></div>
+      <p class="hint">Best <b class="n ${tone(hi)}">${signed(hi, true)}</b> · worst <b class="n ${tone(lo)}">${signed(lo, true)}</b> · in profit at ${wins.length} of ${pts.length} margins. Tap a bar to jump there.</p>`;
+  }
+  $('spBets').addEventListener('click', (x) => {
+    const row = x.target.closest('[data-sid]'); if (!row) return;
+    const S = sp(ev()), b = S.bets.find((z) => z.id === row.dataset.sid); if (!b) return;
+    const sideBtn = x.target.closest('[data-sside]');
+    if (sideBtn) { b.side = +sideBtn.dataset.sside; save(); renderSpread(true); return; }
+    if (x.target.closest('[data-ssign]')) { b.sign = b.sign === '-' ? '+' : '-'; save(); renderSpread(true); return; }
+    if (x.target.closest('[data-sdel]')) { S.bets = S.bets.filter((z) => z !== b); save(); renderSpread(true); }
+  });
+  $('spBets').addEventListener('input', (x) => {
+    const f = x.target.dataset.sf, row = x.target.closest('[data-sid]'); if (!f || !row) return;
+    const b = sp(ev()).bets.find((z) => z.id === row.dataset.sid); if (!b) return;
+    b[f] = x.target.value; save();
+    row.querySelector('[data-sd]').innerHTML = spDerived(b);
+    renderSpreadOut();
+  });
+  document.querySelectorAll('[data-spadd]').forEach((btn) => btn.addEventListener('click', () => {
+    const S = sp(ev()); S.bets.push({ id: uid(), side: +btn.dataset.spadd, paid: '', odds: '', sign: '+', line: '' }); save(); renderSpread(true);
+    const ins = $('spBets').querySelectorAll('[data-sf="paid"]'); if (ins.length) ins[ins.length - 1].focus();
+  }));
+  $('spInc').addEventListener('change', (x) => { sp(ev()).inc = x.target.checked; save(); renderSpreadOut(); });
+  $('spSlider').addEventListener('input', (x) => { sp(ev()).m = +x.target.value; save(); renderSpreadOut(); });
+  $('spRange').addEventListener('input', (x) => { sp(ev()).range = x.target.value; save(); renderSpreadOut(); });
+  $('spStep').addEventListener('input', (x) => { sp(ev()).step = x.target.value; save(); renderSpreadOut(); });
+  $('spChart').addEventListener('click', (x) => { const b = x.target.closest('[data-m]'); if (!b) return; sp(ev()).m = +b.dataset.m; save(); renderSpreadOut(); });
+
   /* ---------- Tabs ---------- */
-  const TABS = ['bets', 'live', 'bank'];
+  const TABS = ['bets', 'live', 'spread', 'bank'];
   let curTab = 'bets';
   function setTab(t){
     if (!TABS.includes(t)) t = 'bets';
     curTab = t;
     document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
-    $('pBets').hidden = t !== 'bets'; $('pLive').hidden = t !== 'live'; $('pBank').hidden = t !== 'bank';
+    $('pBets').hidden = t !== 'bets'; $('pLive').hidden = t !== 'live'; $('pSpread').hidden = t !== 'spread'; $('pBank').hidden = t !== 'bank';
+    if (t === 'spread') renderSpread(true);
     if (t === 'live') renderLive(true);
     if (t === 'bank') renderBank(true);
   }
 
   /* ---------- Render ---------- */
   function refresh(){
-    renderEvSel(); renderBanner(); renderStand(); renderSides(); renderForm(); renderHedge(true); renderLedger(); renderLive(true); renderBank(true);
+    renderEvSel(); renderBanner(); renderStand(); renderSides(); renderForm(); renderHedge(true); renderLedger(); renderLive(true); renderSpread(true); renderBank(true);
   }
   function renderAll(){
     const e = ev();
@@ -1050,7 +1225,7 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
 
   ['sideA', 'sideB'].forEach((id, i) => $(id).addEventListener('input', (x) => {
     ev().sides[i] = x.target.value; save();
-    renderEvSel(); if (!editOutcomes) renderStand(); renderSides(); renderForm(); renderHedge(false); renderLedger();
+    renderEvSel(); if (!editOutcomes) renderStand(); renderSides(); renderForm(); renderHedge(false); renderLedger(); renderSpread(true);
   }));
 
   $('editOut').addEventListener('click', () => { editOutcomes = !editOutcomes; renderStand(); });
@@ -1236,14 +1411,21 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
     const el = $('sync'), btn = $('bookBtn');
     if (mode === 'book' && book) {
       const m = { ok: ['ok', 'Synced'], busy: ['busy', 'Saving…'], off: ['off', 'Offline, will sync'], load: ['busy', 'Loading…'] }[book.status] || ['', ''];
-      el.className = 'sync ' + m[0]; el.textContent = m[1]; btn.textContent = 'Lock';
-    } else { el.className = 'sync'; el.textContent = 'This device only'; btn.textContent = 'Use a passcode'; }
+      el.className = 'sync ' + m[0]; el.textContent = m[1]; btn.textContent = 'Lock'; $('pcBtn').hidden = false;
+    } else { el.className = 'sync'; el.textContent = 'This device only'; btn.textContent = 'Use a passcode'; $('pcBtn').hidden = true; }
   }
   function setSync(st){ if (book) book.status = st; renderSync(); }
   function resetUI(){ F = null; $('form').hidden = true; editOutcomes = false; ledgerOpen = null; lastTrade = null; floorF = null; }
   function showAll(){ resetUI(); renderAll(); setTab(curTab); }
   function queueSync(){ clearTimeout(syncTimer); syncTimer = setTimeout(sync, 700); setSync('busy'); }
-  function adopt(j){ store = normalize(j.data); book.v = j.v; book.dirty = false; writeCache(); showAll(); setSync('ok'); }
+  const MOVED = 'This book’s passcode was changed. Enter the new one.';
+  const isMoved = (j) => !!(j && j.data && j.data.moved);
+  function bookMoved(){
+    try { if (book) localStorage.removeItem(cacheKey()); localStorage.removeItem(SESSION); } catch (e) {}
+    clearTimeout(syncTimer); clearTimeout(retryTimer);
+    goLocal(); showGate(MOVED);
+  }
+  function adopt(j){ if (isMoved(j)) { bookMoved(); return; } store = normalize(j.data); book.v = j.v; book.dirty = false; writeCache(); showAll(); setSync('ok'); }
   async function sync(){
     if (mode !== 'book' || !book) return;
     if (book.inflight) { book.again = true; return; }
@@ -1282,6 +1464,10 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
     renderSync();
     try {
       const { status, j } = await api('GET', key);
+      if (status === 200 && isMoved(j)) {
+        try { localStorage.removeItem(cacheKey()); localStorage.removeItem(SESSION); } catch (e) {}
+        return 'moved';
+      }
       if (status === 200) {
         if (cached && j.v === book.v) { if (book.dirty) sync(); else setSync('ok'); }
         else { if (cached && book.dirty) toast('Updated from your other device'); adopt(j); }
@@ -1305,12 +1491,12 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
   $('gateForm').addEventListener('submit', async (x) => {
     x.preventDefault();
     const code = $('gateCode').value.trim();
-    if (code.length < 6) { $('gateErr').textContent = 'Use at least 6 characters.'; return; }
+    if (code.length < 6) { $('gateErr').textContent = 'Use at least 6 numbers.'; return; }
     const btn = $('gateOpen'); btn.disabled = true; btn.textContent = 'Opening…';
     try {
       const key = await sha256('betterbettor:' + code);
       const { status } = await api('GET', key);
-      if (status === 200) { hideGate(); const r = await openBook(key); if (r !== 'ok') showGate('Couldn’t open that book. Try again.'); }
+      if (status === 200) { hideGate(); const r = await openBook(key); if (r === 'moved') showGate(MOVED); else if (r !== 'ok') showGate('Couldn’t open that book. Try again.'); }
       else if (status === 404) {
         pendingKey = key;
         const loc = readLocal();
@@ -1322,6 +1508,7 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
   });
   $('gateCreate').addEventListener('click', async () => {
     if (!pendingKey) return;
+    if (!/^\d{6,}$/.test($('gateCode').value.trim())) { $('gateErr').textContent = 'New passcodes are numbers only, 6 or more.'; $('gateNew').hidden = true; $('gateOpen').hidden = false; pendingKey = null; return; }
     const btn = $('gateCreate'); btn.disabled = true; btn.textContent = 'Creating…';
     const bring = !$('gateBringWrap').hidden && $('gateBring').checked;
     const data = bring ? normalize(readLocal()) : normalize({});
@@ -1347,6 +1534,43 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
       goLocal(); showGate();
     } else showGate();
   });
+
+  /* Change passcode: copy the book to the new passcode, then retire the old one with a "moved" marker. */
+  function pcShow(){ $('pcDlg').hidden = false; $('pcCode').value = ''; $('pcCode2').value = ''; $('pcErr').textContent = ''; setTimeout(() => $('pcCode').focus(), 50); }
+  $('pcBtn').addEventListener('click', () => { if (mode === 'book' && book) pcShow(); });
+  $('pcCancel').addEventListener('click', () => { $('pcDlg').hidden = true; });
+  ['pcCode', 'pcCode2'].forEach((id) => $(id).addEventListener('input', () => { $('pcErr').textContent = ''; }));
+  $('pcForm').addEventListener('submit', async (x) => {
+    x.preventDefault();
+    const err = (m) => { $('pcErr').textContent = m; };
+    const code = $('pcCode').value.trim();
+    if (!/^\d{6,}$/.test(code)) return err('Use 6 or more numbers.');
+    if (code !== $('pcCode2').value.trim()) return err('Those don’t match.');
+    if (!(mode === 'book' && book)) return err('Open your book first.');
+    const btn = $('pcSave'); btn.disabled = true; btn.textContent = 'Changing…';
+    try {
+      if (book.dirty || book.inflight) {
+        clearTimeout(syncTimer); sync();
+        for (let i = 0; i < 40 && book && (book.dirty || book.inflight); i++) await new Promise((r) => setTimeout(r, 150));
+        if (!book || book.dirty || book.inflight) return err('Still saving. Check your connection and try again.');
+      }
+      const key = await sha256('betterbettor:' + code);
+      if (key === book.key) return err('That’s already your passcode.');
+      const cur = await api('GET', book.key);
+      if (cur.status === 200 && cur.j.v !== book.v) { adopt(cur.j); return err('Your book just updated from another device. Check it, then try again.'); }
+      const made = await api('PUT', key, { v: 0, data: store, create: true });
+      if (made.status === 409) return err('That passcode is already in use. Pick a different one.');
+      if (made.status !== 200) return err('Couldn’t change it. Try again.');
+      const old = book;
+      await api('PUT', old.key, { v: old.v, data: { events: [], moved: Date.now() } }).catch(() => {});
+      try { localStorage.removeItem(cacheKey()); localStorage.setItem(CACHE + key.slice(0, 20), JSON.stringify({ v: made.j.v, dirty: false, data: store })); } catch (e) {}
+      clearTimeout(syncTimer); clearTimeout(retryTimer);
+      $('pcDlg').hidden = true;
+      await openBook(key);
+      toast('Passcode changed');
+    } catch (e) { err('Couldn’t reach the site. Check your connection and try again.'); }
+    finally { btn.disabled = false; btn.textContent = 'Change passcode'; }
+  });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshBook(); });
   addEventListener('online', () => { if (book && book.dirty) sync(); });
 
@@ -1354,7 +1578,7 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
   setTab(location.hash.slice(1));
   renderSync();
   let sess = null; try { sess = JSON.parse(localStorage.getItem(SESSION)); } catch (e) {}
-  if (sess && sess.key) openBook(sess.key).then((r) => { if (r !== 'ok') { goLocal(); showGate(r === 'missing' ? 'That book wasn’t found. Enter your passcode again.' : 'Couldn’t reach the site to open your book.'); } });
+  if (sess && sess.key) openBook(sess.key).then((r) => { if (r !== 'ok') { goLocal(); showGate(r === 'moved' ? MOVED : r === 'missing' ? 'That book wasn’t found. Enter your passcode again.' : 'Couldn’t reach the site to open your book.'); } });
   else if (!(sess && sess.local)) showGate();
 })();
 </script>
