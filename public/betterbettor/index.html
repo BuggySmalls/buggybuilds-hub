@@ -161,6 +161,35 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
 .litem.open .lhead{background:var(--paper)}
 .lhead .chev{color:var(--muted);font-size:12px;margin-left:8px}
 .lbody{padding:4px 12px 10px}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--track);border-radius:14px;padding:4px;position:sticky;top:8px;z-index:5}
+.tabs button{min-height:42px;border:0;border-radius:10px;background:transparent;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.16)}
+.panel{display:flex;flex-direction:column;gap:14px}
+.odds-box{display:flex;flex-direction:column;gap:6px;border-radius:14px;padding:10px;min-width:0}
+.odds-box.s0{background:var(--a-soft)}.odds-box.s1{background:var(--b-soft)}
+.odds-box .nm{font:700 15px var(--font-display);overflow-wrap:anywhere}
+.odds-box.s0 .nm{color:var(--a)}.odds-box.s1 .nm{color:var(--b)}
+.stepper{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"in in" "dn up";gap:6px}
+.stepper input{grid-area:in}.stepper button:first-child{grid-area:dn}.stepper button:last-child{grid-area:up}
+.stepper button{min-height:44px;border-radius:10px;border:1px solid var(--rule);background:var(--surface);font:600 20px var(--font-num);cursor:pointer}
+.stepper input{text-align:center;padding:8px 4px;font-size:22px}
+.sub{font-size:12px;color:var(--muted)}
+.lockbig{font:700 36px var(--font-num);line-height:1.1}
+.chart svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+.lg::before{content:"";display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px}
+.lg.a::before{background:var(--a)}.lg.b::before{background:var(--b)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tile{background:var(--paper);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile .k{font-size:12px;color:var(--muted)}
+.tile .v{font:600 20px var(--font-num);overflow-wrap:anywhere}
+.tile .s{font-size:12px;color:var(--muted)}
+.goalbar{height:8px;border-radius:5px;background:var(--track);overflow:hidden;margin-top:4px}
+.goalbar i{display:block;height:100%;background:var(--pos)}
+.erow{display:flex;flex-direction:column;gap:8px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.erow:last-child{border-bottom:0}
+.erow-h{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:14px}
+.erow-h span:first-child{overflow-wrap:anywhere}
 @media (max-width:420px){
   .side-name{font-size:24px}
   .evbar{flex-basis:100%;justify-content:stretch}
@@ -194,6 +223,13 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
 
   <div id="banner"></div>
 
+  <nav class="tabs" role="tablist" aria-label="BetterBettor+">
+    <button type="button" role="tab" data-tab="bets" aria-controls="pBets">Bets</button>
+    <button type="button" role="tab" data-tab="live" aria-controls="pLive">Live</button>
+    <button type="button" role="tab" data-tab="bank" aria-controls="pBank">Bankroll</button>
+  </nav>
+
+  <div id="pBets" class="panel" role="tabpanel">
   <section class="card">
     <div class="card-h"><h2>Where you stand</h2><button type="button" class="btn sm ghost" id="editOut">Edit outcomes</button></div>
     <div id="stand" class="stand"></div>
@@ -264,6 +300,104 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
     <h2>Ledger by outcome</h2>
     <div id="ledger" class="ledger"></div>
   </section>
+  </div>
+
+  <!-- LIVE -->
+  <div id="pLive" class="panel" role="tabpanel" hidden>
+    <section class="card">
+      <div class="card-h"><h2>Live odds</h2><span id="mkt"></span></div>
+      <div class="two">
+        <div class="odds-box s0">
+          <label class="nm" for="lA" id="lAName">A</label>
+          <div class="stepper">
+            <button type="button" data-step="0" data-dir="-1" aria-label="Shorter odds">−</button>
+            <input id="lA" class="big" placeholder="-150" autocomplete="off">
+            <button type="button" data-step="0" data-dir="1" aria-label="Longer odds">+</button>
+          </div>
+          <span class="sub n" id="lAImp"></span>
+        </div>
+        <div class="odds-box s1">
+          <label class="nm" for="lB" id="lBName">B</label>
+          <div class="stepper">
+            <button type="button" data-step="1" data-dir="-1" aria-label="Shorter odds">−</button>
+            <input id="lB" class="big" placeholder="+130" autocomplete="off">
+            <button type="button" data-step="1" data-dir="1" aria-label="Longer odds">+</button>
+          </div>
+          <span class="sub n" id="lBImp"></span>
+        </div>
+      </div>
+      <p class="hint">+ means longer odds (less likely), − means shorter. Each tap moves 1% of implied chance. Kalshi ¢ prices are before fees.</p>
+    </section>
+
+    <section class="card">
+      <h2>Lock it in</h2>
+      <div id="lockOut"></div>
+      <button type="button" class="btn primary" id="lockAdd" hidden>Lock it</button>
+    </section>
+
+    <section class="card">
+      <h2>Guarantee a floor, let the rest ride</h2>
+      <label class="sr" for="floor">Guaranteed amount</label>
+      <input type="range" id="floor" min="0" max="100" step="1" value="0">
+      <div id="floorOut"></div>
+      <button type="button" class="btn" id="floorAdd" hidden>Place it</button>
+    </section>
+
+    <section class="card">
+      <h2>Lock target</h2>
+      <label class="f" for="target">Profit I want to lock ($)
+        <input id="target" class="big" inputmode="decimal" placeholder="50" autocomplete="off">
+      </label>
+      <div id="targetOut"></div>
+    </section>
+
+    <section class="card">
+      <h2>Quick trade</h2>
+      <div class="seg" role="group" aria-label="Side to bet">
+        <button type="button" data-qside="0">A</button>
+        <button type="button" data-qside="1">B</button>
+      </div>
+      <div class="chips" id="qChips"></div>
+      <label class="f" for="qStake">Stake ($)
+        <input id="qStake" class="big" inputmode="decimal" placeholder="25" autocomplete="off">
+      </label>
+      <div id="qOut"></div>
+      <div class="actions">
+        <button type="button" class="btn" id="qUndo" hidden>Undo last</button>
+        <button type="button" class="btn primary" id="qAdd">Add trade</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Odds tape</h2><button type="button" class="btn sm ghost" id="tapeClear">Clear</button></div>
+      <div id="tape" class="chart"></div>
+    </section>
+  </div>
+
+  <!-- BANKROLL -->
+  <div id="pBank" class="panel" role="tabpanel" hidden>
+    <section class="card">
+      <h2>Bankroll</h2>
+      <div class="two">
+        <label class="f" for="bStart">Starting bankroll ($)
+          <input id="bStart" class="big" inputmode="decimal" placeholder="500" autocomplete="off">
+        </label>
+        <label class="f" for="bGoal">Monthly goal (%)
+          <input id="bGoal" class="big" inputmode="decimal" placeholder="100" autocomplete="off">
+        </label>
+      </div>
+      <div class="tiles" id="bTiles"></div>
+      <div id="bChart" class="chart"></div>
+    </section>
+    <section class="card">
+      <h2>Settle events</h2>
+      <div id="bOpen"></div>
+    </section>
+    <section class="card">
+      <h2>Settled</h2>
+      <div id="bDone"></div>
+    </section>
+  </div>
 </div>
 
 <script>
@@ -317,23 +451,28 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
         { id: uid(), side: 0, name: 'Chiefs −3.5 · DraftKings', paid: 55, back: 105, wins: ['o1'] },
         { id: uid(), side: 1, name: 'Bills Yes · Kalshi', paid: 70, back: 120, wins: ['o3'] }
       ],
-      hedge: { side: 1, odds: '+200', amt: '' }
+      hedge: { side: 1, odds: '+200', amt: '' },
+      live: { a: '-150', b: '+130' },
+      tape: [0.55, 0.58, 0.62, 0.57, 0.52, 0.56, 0.60, 0.60].map((p, i, arr) => ({ t: Date.now() - (arr.length - 1 - i) * 5 * 60000, a: p, b: Math.round((1.045 - p) * 10000) / 10000 }))
     };
   }
   function blankEvent(){
     return {
       id: uid(), sides: ['', ''],
       outcomes: [{ id: uid(), side: 0, name: '' }, { id: uid(), side: 1, name: '' }],
-      bets: [], hedge: { side: 1, odds: '', amt: '' }
+      bets: [], hedge: { side: 1, odds: '', amt: '' }, live: { a: '', b: '' }, tape: []
     };
   }
   function load(){
+    let s = null;
     try {
-      const s = JSON.parse(localStorage.getItem(KEY));
-      if (s && Array.isArray(s.events) && s.events.length) return s;
-    } catch (e) {}
-    const ev = exampleEvent();
-    return { cur: ev.id, events: [ev] };
+      s = JSON.parse(localStorage.getItem(KEY));
+      if (!(s && Array.isArray(s.events) && s.events.length)) s = null;
+    } catch (e) { s = null; }
+    if (!s) { const ex = exampleEvent(); s = { cur: ex.id, events: [ex] }; }
+    if (!s.bank) s.bank = { start: '', goal: '100' };
+    s.events.forEach((e) => { if (!e.live) e.live = { a: '', b: '' }; if (!Array.isArray(e.tape)) e.tape = []; });
+    return s;
   }
   const store = load();
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
@@ -365,13 +504,17 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
 
   /* ---------- Events bar ---------- */
   function renderEvSel(){
-    $('evSel').innerHTML = store.events.map((e) => `<option value="${e.id}"${e.id === store.cur ? ' selected' : ''}>${esc(evName(e))}</option>`).join('');
+    $('evSel').innerHTML = store.events.map((e) => `<option value="${e.id}"${e.id === store.cur ? ' selected' : ''}>${esc(evName(e))}${e.settled ? ' · settled' : ''}</option>`).join('');
   }
   function renderBanner(){
     const e = ev();
-    $('banner').innerHTML = e.example
-      ? `<div class="banner"><span>These are example bets. Hit New event to start your own.</span><button type="button" class="btn sm ghost" id="dismissEx">Got it</button></div>`
-      : '';
+    let h = '';
+    if (e.example) h += `<div class="banner"><span>These are example bets. Hit New event to start your own.</span><button type="button" class="btn sm ghost" id="dismissEx">Got it</button></div>`;
+    if (e.settled) {
+      const o = e.outcomes.find((x) => x.id === e.settled.oid), net = settledNet(e);
+      h += `<div class="banner"><span>Settled: ${esc(o ? outName(e, o) : 'outcome removed')} · <b class="n ${tone(net)}">${signed(net)}</b></span><a class="btn sm ghost" href="#bank" style="display:inline-flex;align-items:center;text-decoration:none">Bankroll</a></div>`;
+    }
+    $('banner').innerHTML = h;
   }
 
   /* ---------- Where you stand ---------- */
@@ -603,9 +746,232 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
     }).join('');
   }
 
+  /* ---------- Live ---------- */
+  let floorF = null, qSide = 0, qStake = '25', lastTrade = null, tapeTimer = 0;
+  const r4 = (x) => Math.round(x * 10000) / 10000;
+  const oddsStr = (d) => american(d).replace('−', '-');
+  const liveD = (e, s) => parseOdds(e.live[s ? 'b' : 'a']);
+  const clock = (t) => new Date(t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  // Worst result inside each side, so a split side is judged by its weakest outcome.
+  function sideNets(e){
+    const res = results(e);
+    const n = [0, 1].map((s) => { const r = res.filter((x) => x.o.side === s); return r.length ? Math.min(...r.map((x) => x.net)) : 0; });
+    return { n, split: sideOutcomes(e, 0).length > 1 || sideOutcomes(e, 1).length > 1 };
+  }
+  function pushBet(e, side, name, paid, d){
+    const b = { id: uid(), side, name, paid: r2(paid), back: r2(paid * d), wins: sideOutcomes(e, side), at: Date.now() };
+    e.bets.push(b); delete e.example; return b;
+  }
+  function stepOdds(e, s, dir){
+    const k = s ? 'b' : 'a', d = parseOdds(e.live[k]);
+    let p = d ? 1 / d : 0.5;
+    p = Math.min(0.98, Math.max(0.02, Math.round((p - dir * 0.01) * 100) / 100));
+    e.live[k] = oddsStr(1 / p);
+  }
+  function lockMath(e){
+    if (!e.bets.length) return { none: true };
+    const { n, split } = sideNets(e);
+    const dA = liveD(e, 0), dB = liveD(e, 1);
+    if (!dA || !dB) return { noOdds: true, n, split };
+    const low = n[0] < n[1] ? 0 : 1, high = 1 - low, dLow = low ? dB : dA;
+    const gap = n[high] - n[low];
+    const h = gap > 0.004 ? gap / dLow : 0;
+    return { n, split, low, high, dLow, gap, h, L: n[high] - h };
+  }
+  function renderLive(sync){
+    const e = ev();
+    [['a', 'A'], ['b', 'B']].forEach(([k, K], s) => {
+      $('l' + K + 'Name').textContent = sideName(e, s);
+      if (sync && document.activeElement !== $('l' + K)) $('l' + K).value = e.live[k];
+      const d = parseOdds(e.live[k]);
+      $('l' + K + 'Imp').textContent = d ? `${(100 / d).toFixed(1)}% · ${d.toFixed(2)} dec` : (e.live[k] ? 'Try +150, -120, 2.5 or 55¢' : 'Enter live odds');
+    });
+    const dA = liveD(e, 0), dB = liveD(e, 1);
+    if (dA && dB) {
+      const book = 1 / dA + 1 / dB;
+      $('mkt').innerHTML = book < 1 ? `<span class="pill good">Arb: ${((1 - book) * 100).toFixed(1)}% under 100</span>` : `<span class="pill flat">Hold ${((book - 1) * 100).toFixed(1)}%</span>`;
+    } else $('mkt').innerHTML = '';
+    renderLock(); renderFloor(); renderTarget(); renderQuick(); renderTape();
+  }
+  function renderLock(){
+    const e = ev(), m = lockMath(e), out = $('lockOut');
+    $('lockAdd').hidden = true;
+    if (m.none) { out.innerHTML = '<p class="hint">No position yet. Open one with Quick trade below, or add bets on the Bets tab.</p>'; return; }
+    const now = `<p class="hint">Right now: ${esc(sideName(e, 0))} wins <b class="n ${tone(m.n[0])}">${signed(m.n[0])}</b> · ${esc(sideName(e, 1))} wins <b class="n ${tone(m.n[1])}">${signed(m.n[1])}</b>${m.split ? ' (worst case inside each side)' : ''}</p>`;
+    if (m.noOdds) { out.innerHTML = now + '<p class="hint">Enter live odds for both sides to see what you can lock.</p>'; return; }
+    if (m.gap <= 0.004) { out.innerHTML = `<span class="lbl">Already even</span><div class="lockbig ${tone(m.L)}">${signed(m.L)}</div>${now}`; return; }
+    out.innerHTML = `<span class="lbl">${m.L >= 0 ? 'Lock in, either way' : 'Smallest loss you can lock'}</span>
+      <div class="lockbig ${tone(m.L)}">${signed(m.L)}</div>
+      <p class="hsum">Bet <b class="n">${money(r2(m.h))}</b> on ${esc(sideName(e, m.low))} at <b class="n">${american(m.dLow)}</b>.</p>${now}`;
+    $('lockAdd').hidden = false;
+    $('lockAdd').textContent = `Lock it: ${money(r2(m.h))} on ${sideName(e, m.low)}`;
+  }
+  function renderFloor(){
+    const e = ev(), m = lockMath(e), out = $('floorOut'), rg = $('floor');
+    $('floorAdd').hidden = true; rg.disabled = true;
+    const msg = (t) => { out.innerHTML = `<p class="hint">${t}</p>`; };
+    if (m.none) return msg('Needs a position first.');
+    if (m.noOdds) return msg('Needs live odds on both sides.');
+    const lo = Math.ceil(m.n[m.low]), hi = Math.floor(m.L);
+    if (m.gap <= 0.5 || hi <= lo) return msg('Nothing to split: your two sides are already about even.');
+    rg.disabled = false; rg.min = String(lo); rg.max = String(hi);
+    if (floorF === null || floorF < lo || floorF > hi) floorF = Math.round((lo + hi) / 2);
+    rg.value = String(floorF);
+    const H = (floorF - m.n[m.low]) / (m.dLow - 1), up = m.n[m.high] - H;
+    out.innerHTML = `<div class="scale n"><span>No hedge ${signed(m.n[m.low])}</span><span>Full lock ${signed(m.L)}</span></div>
+      <p class="hsum">Guarantee at least <b class="n ${tone(floorF)}">${signed(floorF)}</b>. If ${esc(sideName(e, m.high))} wins you get <b class="n ${tone(up)}">${signed(up)}</b>.</p>
+      <p class="hint">Bet ${money(r2(H))} on ${esc(sideName(e, m.low))} at ${american(m.dLow)}.</p>`;
+    $('floorAdd').hidden = false;
+    $('floorAdd').textContent = `Place ${money(r2(H))} on ${sideName(e, m.low)}`;
+  }
+  function renderTarget(){
+    const e = ev(), out = $('targetOut');
+    if (document.activeElement !== $('target')) $('target').value = e.liveTarget || '';
+    if (!e.bets.length) { out.innerHTML = '<p class="hint">Needs a position first.</p>'; return; }
+    const T = num(e.liveTarget);
+    if (!isFinite(T)) { out.innerHTML = '<p class="hint">Type the profit you want to lock, and it tells you the odds to wait for.</p>'; return; }
+    const { n } = sideNets(e);
+    const low = n[0] < n[1] ? 0 : 1, nh = n[1 - low], nl = n[low];
+    if (T <= nl + 0.004) { out.innerHTML = `<p class="hsum">You already get <b class="n ${tone(nl)}">${signed(nl)}</b> or better either way. No hedge needed.</p>`; return; }
+    if (T >= nh - 0.004) { out.innerHTML = `<p class="hsum">You can’t lock more than your best case of <b class="n ${tone(nh)}">${signed(nh)}</b>. Add to your position first.</p>`; return; }
+    const dReq = (nh - nl) / (nh - T), dNow = liveD(e, low);
+    let cmp = '';
+    if (dNow) {
+      cmp = dNow >= dReq - 1e-9
+        ? `<span class="pill good">Available now at ${american(dNow)}</span>`
+        : `<span class="pill flat">Now ${american(dNow)} · needs ${((1 / dNow - 1 / dReq) * 100).toFixed(1)} pts of drift</span>`;
+    }
+    out.innerHTML = `<p class="hsum">Wait for ${esc(sideName(e, low))} at <b class="n">${american(dReq)}</b> or longer (${(100 / dReq).toFixed(1)}% implied). Then bet <b class="n">${money(r2((nh - nl) / dReq))}</b> on them to lock <b class="n ${tone(T)}">${signed(T)}</b>.</p>${cmp}`;
+  }
+  function renderQuick(){
+    const e = ev();
+    document.querySelectorAll('[data-qside]').forEach((b) => {
+      const s = +b.dataset.qside, d = liveD(e, s);
+      b.textContent = sideName(e, s) + (d ? ' ' + american(d) : '');
+      b.classList.toggle('on', s === qSide);
+    });
+    const bank = bankNow();
+    const chips = [10, 25, 50, 100].map((v) => ({ v, l: usd0.format(v) }));
+    if (bank > 0) [2, 5].forEach((f) => { const v = Math.max(1, Math.round(bank * f / 100)); chips.push({ v, l: `${f}% · ${usd0.format(v)}` }); });
+    $('qChips').innerHTML = chips.map((c) => `<button type="button" class="chip" data-qamt="${c.v}" aria-pressed="${num(qStake) === c.v}">${c.l}</button>`).join('');
+    if (document.activeElement !== $('qStake')) $('qStake').value = qStake;
+    const d = liveD(e, qSide), st = num(qStake), out = $('qOut');
+    $('qAdd').disabled = !(d && st > 0);
+    $('qAdd').textContent = d && st > 0 ? `Add ${money(st)} on ${sideName(e, qSide)}` : 'Add trade';
+    $('qUndo').hidden = !(lastTrade && e.bets.some((b) => b.id === lastTrade));
+    if (!d) { out.innerHTML = `<p class="hint">Enter live odds for ${esc(sideName(e, qSide))} above.</p>`; return; }
+    if (!(st > 0)) { out.innerHTML = '<p class="hint">Pick a stake.</p>'; return; }
+    const { n } = sideNets(e);
+    const after = [0, 1].map((s) => n[s] + (s === qSide ? st * (d - 1) : -st));
+    out.innerHTML = `<table><thead><tr><th>If</th><th class="n">Now</th><th class="n">After trade</th></tr></thead><tbody>${[0, 1].map((s) => `<tr><td>${esc(sideName(e, s))} wins</td><td class="n ${tone(n[s])}">${signed(n[s])}</td><td class="n ${tone(after[s])}" style="font-weight:600">${signed(after[s])}</td></tr>`).join('')}</tbody></table>`;
+  }
+  function logTape(){
+    const e = ev(), dA = liveD(e, 0), dB = liveD(e, 1);
+    if (!dA || !dB) return;
+    const pt = { t: Date.now(), a: r4(1 / dA), b: r4(1 / dB) }, last = e.tape[e.tape.length - 1];
+    if (last && last.a === pt.a && last.b === pt.b) return;
+    e.tape.push(pt); if (e.tape.length > 300) e.tape.shift();
+    save(); renderTape();
+  }
+  function queueTape(){ clearTimeout(tapeTimer); tapeTimer = setTimeout(logTape, 2500); }
+  function renderTape(){
+    const e = ev(), box = $('tape'), T = e.tape;
+    if (T.length < 2) { box.innerHTML = '<p class="hint">Every live odds change gets logged here, so you can see the swings.</p>'; return; }
+    const W = 400, H = 170, pl = 36, pr = 8, pt = 8, pb = 22;
+    const t0 = T[0].t, t1 = T[T.length - 1].t, span = Math.max(1, t1 - t0);
+    const X = (t) => (pl + (t - t0) / span * (W - pl - pr)).toFixed(1);
+    const Y = (p) => (pt + (1 - p) * (H - pt - pb)).toFixed(1);
+    const grid = [0.25, 0.5, 0.75].map((p) => `<line x1="${pl}" x2="${W - pr}" y1="${Y(p)}" y2="${Y(p)}" style="stroke:var(--rule)"/><text x="${pl - 6}" y="${+Y(p) + 4}" text-anchor="end" font-size="12" style="fill:var(--muted)">${p * 100}%</text>`).join('');
+    const trades = e.bets.filter((b) => b.at && b.at >= t0 && b.at <= t1).map((b) => `<line x1="${X(b.at)}" x2="${X(b.at)}" y1="${pt}" y2="${H - pb}" style="stroke:var(--muted)" stroke-dasharray="3 4"/>`).join('');
+    const line = (k, c) => `<polyline fill="none" style="stroke:var(${c})" stroke-width="2.5" stroke-linejoin="round" points="${T.map((q) => `${X(q.t)},${Y(q[k])}`).join(' ')}"/><circle cx="${X(t1)}" cy="${Y(T[T.length - 1][k])}" r="4.5" style="fill:var(${c})"/>`;
+    const last = T[T.length - 1];
+    box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Implied chance for each side over time">${grid}${trades}${line('a', '--a')}${line('b', '--b')}<text x="${pl}" y="${H - 6}" font-size="12" style="fill:var(--muted)">${clock(t0)}</text><text x="${W - pr}" y="${H - 6}" text-anchor="end" font-size="12" style="fill:var(--muted)">${clock(t1)}</text></svg>
+      <div class="legend n"><span class="lg a">${esc(sideName(e, 0))} ${(last.a * 100).toFixed(0)}%</span><span class="lg b">${esc(sideName(e, 1))} ${(last.b * 100).toFixed(0)}%</span><span>${T.length} snapshots · dashed lines are your trades</span></div>`;
+  }
+
+  /* ---------- Bankroll ---------- */
+  function settledNet(e){ const r = results(e).find((x) => x.o.id === e.settled.oid); return r ? r.net : 0; }
+  function bankNow(){
+    const s = num(store.bank.start);
+    return (s > 0 ? s : 0) + store.events.filter((e) => e.settled).reduce((a, e) => a + settledNet(e), 0);
+  }
+  function renderBank(sync){
+    if (sync) {
+      if (document.activeElement !== $('bStart')) $('bStart').value = store.bank.start;
+      if (document.activeElement !== $('bGoal')) $('bGoal').value = store.bank.goal;
+    }
+    const start = num(store.bank.start), has = start > 0;
+    const done = store.events.filter((e) => e.settled).sort((a, b) => a.settled.at - b.settled.at);
+    const mk = (t) => { const x = new Date(t); return x.getFullYear() * 12 + x.getMonth(); };
+    const curM = mk(Date.now());
+    const before = done.filter((e) => mk(e.settled.at) < curM).reduce((a, e) => a + settledNet(e), 0);
+    const monthEv = done.filter((e) => mk(e.settled.at) === curM);
+    const month = monthEv.reduce((a, e) => a + settledNet(e), 0);
+    const total = done.reduce((a, e) => a + settledNet(e), 0);
+    const open = store.events.filter((e) => !e.settled && e.bets.length);
+    const openStaked = open.reduce((a, e) => a + e.bets.reduce((x, b) => x + b.paid, 0), 0);
+    const openWorst = open.reduce((a, e) => a + Math.min(...results(e).map((r) => r.net)), 0);
+    const goal = num(store.bank.goal) / 100;
+    const ms = has ? start + before : 0;
+    const growth = ms > 0 ? month / ms : NaN;
+    const prog = goal > 0 && isFinite(growth) ? growth / goal : NaN;
+    const tile = (k, v, cls, s, extra) => `<div class="tile"><span class="k">${k}</span><span class="v ${cls || ''}">${v}</span>${s ? `<span class="s">${s}</span>` : ''}${extra || ''}</div>`;
+    $('bTiles').innerHTML =
+      tile('Bankroll now', has ? money(start + total) : '—', '', has ? `Started at ${money(start)} · ${signed(total)} all time` : 'Set a starting bankroll above')
+      + tile('This month', signed(month), tone(month), isFinite(growth) ? `${(growth * 100).toFixed(1)}% · ${monthEv.length} settled` : `${monthEv.length} settled`)
+      + tile('Monthly goal', isFinite(prog) ? `${Math.round(prog * 100)}%` : '—', '', ms > 0 && goal > 0 ? `of the way to ${signed(ms * goal)}` : 'Needs a bankroll and a goal',
+          isFinite(prog) ? `<div class="goalbar"><i style="width:${Math.max(0, Math.min(100, prog * 100)).toFixed(0)}%"></i></div>` : '')
+      + tile('Open risk', open.length ? signed(openWorst) : '$0', open.length ? tone(openWorst) : '', open.length ? `If all ${open.length} open go worst case · ${money(openStaked)} staked` : 'Nothing open');
+    // Bankroll line
+    const box = $('bChart');
+    if (!has || !done.length) { box.innerHTML = '<p class="hint">Settle an event below and your bankroll line starts here.</p>'; }
+    else {
+      const vals = [start]; done.forEach((e) => vals.push(vals[vals.length - 1] + settledNet(e)));
+      const target = ms * (1 + goal);
+      const lo = Math.min(...vals, start) , hi = Math.max(...vals, goal > 0 ? target : start);
+      const pad = Math.max(1, (hi - lo) * 0.1), y0 = lo - pad, y1 = hi + pad;
+      const W = 400, H = 170, pl = 50, pr = 8, pt = 8, pb = 10;
+      const X = (i) => (pl + i / Math.max(1, vals.length - 1) * (W - pl - pr)).toFixed(1);
+      const Y = (v) => (pt + (1 - (v - y0) / (y1 - y0)) * (H - pt - pb)).toFixed(1);
+      const gl = goal > 0 ? `<line x1="${pl}" x2="${W - pr}" y1="${Y(target)}" y2="${Y(target)}" style="stroke:var(--pos)" stroke-dasharray="5 5"/><text x="${W - pr}" y="${+Y(target) - 5}" text-anchor="end" font-size="12" style="fill:var(--pos)">Month goal ${usd0.format(target)}</text>` : '';
+      box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Bankroll after each settled event">
+        <line x1="${pl}" x2="${W - pr}" y1="${Y(start)}" y2="${Y(start)}" style="stroke:var(--rule)"/>
+        <text x="${pl - 6}" y="${+Y(start) + 4}" text-anchor="end" font-size="12" style="fill:var(--muted)">${usd0.format(start)}</text>
+        ${gl}
+        <polyline fill="none" style="stroke:var(--ink)" stroke-width="2.5" stroke-linejoin="round" points="${vals.map((v, i) => `${X(i)},${Y(v)}`).join(' ')}"/>
+        ${vals.map((v, i) => `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === vals.length - 1 ? 5 : 3.5}" style="fill:var(${i === 0 ? '--muted' : v >= vals[i - 1] ? '--pos' : '--neg'})"/>`).join('')}
+        <text x="${pl - 6}" y="${+Y(vals[vals.length - 1]) + 4}" text-anchor="end" font-size="12" font-weight="600" style="fill:var(--ink)">${Math.abs(vals[vals.length - 1] - start) > (y1 - y0) * 0.08 ? usd0.format(vals[vals.length - 1]) : ''}</text>
+      </svg>`;
+    }
+    // Open events
+    $('bOpen').innerHTML = open.length ? open.map((e) => {
+      const nets = results(e).map((r) => r.net);
+      return `<div class="erow"><div class="erow-h"><span>${esc(evName(e))}</span><span class="n"><span class="${tone(Math.min(...nets))}">${signed(Math.min(...nets))}</span> to <span class="${tone(Math.max(...nets))}">${signed(Math.max(...nets))}</span></span></div>
+        <div class="chips"><span class="lbl" style="align-self:center">Who won?</span>${e.outcomes.map((o) => `<button type="button" class="chip" data-settle="${e.id}" data-oid="${o.id}">${esc(outName(e, o))}</button>`).join('')}</div></div>`;
+    }).join('') : '<p class="hint">No open events with bets.</p>';
+    // Settled
+    $('bDone').innerHTML = done.length ? done.slice().reverse().map((e) => {
+      const o = e.outcomes.find((x) => x.id === e.settled.oid), net = settledNet(e);
+      return `<div class="erow"><div class="erow-h"><span>${esc(evName(e))}</span><span class="n ${tone(net)}">${signed(net)}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="sub">${esc(o ? outName(e, o) : 'Outcome removed')} · ${new Date(e.settled.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span><button type="button" class="btn sm ghost" data-unsettle="${e.id}">Reopen</button></div></div>`;
+    }).join('') : '<p class="hint">Nothing settled yet.</p>';
+  }
+
+  /* ---------- Tabs ---------- */
+  const TABS = ['bets', 'live', 'bank'];
+  let curTab = 'bets';
+  function setTab(t){
+    if (!TABS.includes(t)) t = 'bets';
+    curTab = t;
+    document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+    $('pBets').hidden = t !== 'bets'; $('pLive').hidden = t !== 'live'; $('pBank').hidden = t !== 'bank';
+    if (t === 'live') renderLive(true);
+    if (t === 'bank') renderBank(true);
+  }
+
   /* ---------- Render ---------- */
   function refresh(){
-    renderEvSel(); renderBanner(); renderStand(); renderSides(); renderForm(); renderHedge(true); renderLedger();
+    renderEvSel(); renderBanner(); renderStand(); renderSides(); renderForm(); renderHedge(true); renderLedger(); renderLive(true); renderBank(true);
   }
   function renderAll(){
     const e = ev();
@@ -743,7 +1109,70 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
     renderLedger();
   });
 
+  /* Live wiring */
+  ['A', 'B'].forEach((K, s) => $('l' + K).addEventListener('input', (x) => {
+    ev().live[s ? 'b' : 'a'] = x.target.value; save(); queueTape(); renderLive(false);
+  }));
+  $('pLive').addEventListener('click', (x) => {
+    const e = ev();
+    const st = x.target.closest('[data-step]');
+    if (st) { stepOdds(e, +st.dataset.step, +st.dataset.dir); save(); queueTape(); renderLive(true); return; }
+    const qs = x.target.closest('[data-qside]');
+    if (qs) { qSide = +qs.dataset.qside; renderQuick(); return; }
+    const qa = x.target.closest('[data-qamt]');
+    if (qa) { qStake = qa.dataset.qamt; renderQuick(); return; }
+  });
+  $('lockAdd').addEventListener('click', () => {
+    const e = ev(), m = lockMath(e);
+    if (!(m.h > 0)) return;
+    lastTrade = pushBet(e, m.low, `Lock ${american(m.dLow)} · ${clock(Date.now())}`, m.h, m.dLow).id;
+    logTape(); save(); refresh();
+  });
+  $('floor').addEventListener('input', (x) => { floorF = +x.target.value; renderFloor(); });
+  $('floorAdd').addEventListener('click', () => {
+    const e = ev(), m = lockMath(e);
+    if (m.none || m.noOdds || floorF === null) return;
+    const H = (floorF - m.n[m.low]) / (m.dLow - 1);
+    if (!(H > 0)) return;
+    lastTrade = pushBet(e, m.low, `Floor ${american(m.dLow)} · ${clock(Date.now())}`, H, m.dLow).id;
+    floorF = null; logTape(); save(); refresh();
+  });
+  $('target').addEventListener('input', (x) => { ev().liveTarget = x.target.value; save(); renderTarget(); });
+  $('qStake').addEventListener('input', (x) => { qStake = x.target.value; renderQuick(); });
+  $('qAdd').addEventListener('click', () => {
+    const e = ev(), d = liveD(e, qSide), st = num(qStake);
+    if (!(d && st > 0)) return;
+    lastTrade = pushBet(e, qSide, `Live ${american(d)} · ${clock(Date.now())}`, st, d).id;
+    logTape(); save(); refresh();
+  });
+  $('qUndo').addEventListener('click', () => {
+    const e = ev(); e.bets = e.bets.filter((b) => b.id !== lastTrade); lastTrade = null; save(); refresh();
+  });
+  $('tapeClear').addEventListener('click', () => { ev().tape = []; save(); renderTape(); });
+
+  /* Bankroll wiring */
+  $('bStart').addEventListener('input', (x) => { store.bank.start = x.target.value; save(); renderBank(false); renderQuick(); });
+  $('bGoal').addEventListener('input', (x) => { store.bank.goal = x.target.value; save(); renderBank(false); });
+  $('pBank').addEventListener('click', (x) => {
+    const s = x.target.closest('[data-settle]');
+    if (s) {
+      const e = store.events.find((z) => z.id === s.dataset.settle);
+      if (e) { e.settled = { oid: s.dataset.oid, at: Date.now() }; save(); refresh(); }
+      return;
+    }
+    const u = x.target.closest('[data-unsettle]');
+    if (u) { const e = store.events.find((z) => z.id === u.dataset.unsettle); if (e) { delete e.settled; save(); refresh(); } }
+  });
+
+  /* Tabs */
+  document.querySelector('.tabs').addEventListener('click', (x) => {
+    const b = x.target.closest('[data-tab]'); if (!b) return;
+    if (location.hash !== '#' + b.dataset.tab) location.hash = b.dataset.tab; else setTab(b.dataset.tab);
+  });
+  addEventListener('hashchange', () => setTab(location.hash.slice(1)));
+
   renderAll();
+  setTab(location.hash.slice(1));
 })();
 </script>
 </body>

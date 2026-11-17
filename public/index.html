@@ -105,7 +105,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 </head>
 <body>
 <div class="wrap" id="top">
-  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 17, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.21</b></span></header>
+  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 17, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.22</b></span></header>
   <h1>BuGGy<br>Builds<i>.</i></h1>
 
   <ol class="list" style="border-top:2px solid var(--line)">
@@ -115,10 +115,10 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
     <li><a class="row" href="/events/" data-peek="events"><span class="n">04</span><span class="t">Events</span><span class="k mono">Plans &amp; invites<br>Browser · phone</span><span class="s mono"><b></b>Live</span><span class="a">↗</span><span class="d">What’s on the books with the crew. Every plan gets its own invite with the date, the spot and directions. Add it to your calendar or send it on.</span><span class="thumb" data-art="events"></span></a></li>
     <li><a class="row" href="/health/" data-peek="gains"><span class="n">05</span><span class="t">Health</span><span class="k mono">Health tracker<br>Browser · phone</span><span class="s mono"><b></b>Locked</span><span class="a">↗</span><span class="d">Weight, runs, lifts and food, tracked over time. Mile and 5K PRs, lift bests, a calorie counter, and a meal prep planner with a grocery list.</span><span class="thumb" data-art="gains"></span></a></li>
     <li><a class="row" href="/golf/" data-peek="golf"><span class="n">06</span><span class="t">The 180</span><span class="k mono">Golf stats<br>Buggy vs N8</span><span class="s mono"><b></b>Match on</span><span class="a">↗</span><span class="d">A 180-hole golf match between Buggy and N8. The running stroke difference, the lead hole by hole, best rounds, biggest swings, and head-to-head stats on fairways, greens, putts and lost balls.</span><span class="thumb" data-art="golf"></span></a></li>
-    <li><a class="row" href="/betterbettor/" data-peek="bettor"><span class="n">07</span><span class="t">BetterBettor+</span><span class="k mono">Bet tracker<br>Hedge · ledger</span><span class="s mono"><b></b>New</span><span class="a">↗</span><span class="d">Log the bets you’ve placed on each side and what they pay back. See your best and worst case, slide a hedge to even it out, and check the debits and credits for every outcome.</span><span class="thumb" data-art="bettor"></span></a></li>
+    <li><a class="row" href="/betterbettor/" data-peek="bettor"><span class="n">07</span><span class="t">BetterBettor+</span><span class="k mono">Bets &amp; live trading<br>Hedge · lock · bankroll</span><span class="s mono"><b></b>New</span><span class="a">↗</span><span class="d">Log your bets on each side and trade live through the swings. See your best and worst case, lock in profit when the odds move your way, and track your bankroll month to month.</span><span class="thumb" data-art="bettor"></span></a></li>
   </ol>
 
-  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.21</span></footer>
+  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.22</span></footer>
 </div>
 <div class="peek" id="peek"></div>
 
@@ -126,6 +126,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 /* Changelog: newest first. The top entry sets the version shown in the corner.
    Every update to the site adds a new entry here and bumps the version by .01 (v1.01, v1.02, ...). */
 const LOG = [
+  { v: '1.22', date: '2026-11-17', items: ['BetterBettor+ goes live. A new Live tab for in-game trading: live odds with quick − / + steppers and a check for arbs.', 'Lock it in shows the profit you can guarantee right now. Guarantee a floor locks part of it and lets the rest ride. Lock target tells you the odds to wait for.', 'Quick trades with one-tap stakes and undo, an odds tape that charts every swing, and a Bankroll tab to settle events and track monthly growth.'] },
   { v: '1.21', date: '2026-11-17', items: ['New: BetterBettor+. Put in the bets you’ve placed on each side, what you paid and what they pay back, and the odds fill in on their own.', 'See your best and worst case at a glance. Split a side for spreads so double dips count right.', 'Slide a hedge to see every outcome before you place it, then check the debits and credits for each outcome.'] },
   { v: '1.20', date: '2026-11-16', items: ['Wiki Race: new Solo mode. Hit Random race for a random pair, replay any past daily, or type in your own start and target pages.', 'Play solo as often as you want. It doesn’t count on the daily board, and it keeps your best time for each pair on your phone.'] },
   { v: '1.19', date: '2026-11-16', items: ['Wiki Race: routes stay hidden until you’ve made your own run. Finish or give up first, then everyone’s paths and the shortest route show up.', 'Past days’ routes only show for people who ran that day, and anyone who joins a room just to watch sees times only.'] },
