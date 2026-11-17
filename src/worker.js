@@ -5,11 +5,13 @@
 // audio frame is forwarded to everyone else tagged with the sender's slot number.
 // Audio is never stored; it is forwarded and forgotten.
 // src/health-lock.js puts a passcode gate in front of /health.
+// BetterBettor+ (src/betterbettor.js) adds /betterbettor/api/book (passcode books, one Durable Object each).
 // Wiki Race (src/wikirace.js) adds /wikirace/api/* (daily leaderboard) and /wikirace/ws/<CODE> (race rooms).
 import { DurableObject } from "cloudflare:workers";
 import { handleWikiRace, Daily, Race } from "./wikirace.js";
 import { handleHealth } from "./health-lock.js";
-export { Daily, Race };
+import { handleBetterBettor, Book } from "./betterbettor.js";
+export { Daily, Race, Book };
 
 const MAX_PEOPLE = 12;
 
@@ -22,6 +24,7 @@ export default {
       const stub = env.CHANNEL.get(env.CHANNEL.idFromName(m[1].toUpperCase()));
       return stub.fetch(req);
     }
+    if (url.pathname.startsWith("/betterbettor/api/")) return handleBetterBettor(req, env, url);
     if (url.pathname === "/health" || url.pathname.startsWith("/health/")) return handleHealth(req, env, url);
     if (url.pathname.startsWith("/wikirace/")) {
       const res = await handleWikiRace(req, env, url);

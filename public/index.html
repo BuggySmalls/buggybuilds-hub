@@ -105,7 +105,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 </head>
 <body>
 <div class="wrap" id="top">
-  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 17, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.22</b></span></header>
+  <header class="top mono"><span><a class="brand" href="#top">BuGGy Builds</a></span><span></span><span>Last updated <span id="updatedTop">Nov 17, 2026</span></span><span class="v"><span class="dot"></span> Version <b id="ver">1.23</b></span></header>
   <h1>BuGGy<br>Builds<i>.</i></h1>
 
   <ol class="list" style="border-top:2px solid var(--line)">
@@ -118,7 +118,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
     <li><a class="row" href="/betterbettor/" data-peek="bettor"><span class="n">07</span><span class="t">BetterBettor+</span><span class="k mono">Bets &amp; live trading<br>Hedge · lock · bankroll</span><span class="s mono"><b></b>New</span><span class="a">↗</span><span class="d">Log your bets on each side and trade live through the swings. See your best and worst case, lock in profit when the odds move your way, and track your bankroll month to month.</span><span class="thumb" data-art="bettor"></span></a></li>
   </ol>
 
-  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.22</span></footer>
+  <footer class="foot mono" style="margin-top:40px"><span>© <span id="yr">2026</span> <span class="brand">BuGGy Builds</span></span><span></span><span></span><span id="footVer">v1.23</span></footer>
 </div>
 <div class="peek" id="peek"></div>
 
@@ -126,6 +126,7 @@ h2 small{font:500 12px 'JetBrains Mono', monospace; color:var(--red); letter-spa
 /* Changelog: newest first. The top entry sets the version shown in the corner.
    Every update to the site adds a new entry here and bumps the version by .01 (v1.01, v1.02, ...). */
 const LOG = [
+  { v: '1.23', date: '2026-11-17', items: ['BetterBettor+ passcode books. Your passcode opens your own book, saved on the site, so your bets and bankroll sync between your phone and laptop.', 'A new passcode starts a new book, and nobody sees your book without your code. You can bring the bets already on your phone into a new book.', 'Works with bad signal too: it keeps a copy on your phone and syncs when you’re back online. Lock signs out on that device.'] },
   { v: '1.22', date: '2026-11-17', items: ['BetterBettor+ goes live. A new Live tab for in-game trading: live odds with quick − / + steppers and a check for arbs.', 'Lock it in shows the profit you can guarantee right now. Guarantee a floor locks part of it and lets the rest ride. Lock target tells you the odds to wait for.', 'Quick trades with one-tap stakes and undo, an odds tape that charts every swing, and a Bankroll tab to settle events and track monthly growth.'] },
   { v: '1.21', date: '2026-11-17', items: ['New: BetterBettor+. Put in the bets you’ve placed on each side, what you paid and what they pay back, and the odds fill in on their own.', 'See your best and worst case at a glance. Split a side for spreads so double dips count right.', 'Slide a hedge to see every outcome before you place it, then check the debits and credits for each outcome.'] },
   { v: '1.20', date: '2026-11-16', items: ['Wiki Race: new Solo mode. Hit Random race for a random pair, replay any past daily, or type in your own start and target pages.', 'Play solo as often as you want. It doesn’t count on the daily board, and it keeps your best time for each pair on your phone.'] },

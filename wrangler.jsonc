@@ -2,6 +2,7 @@
   // buggybuilds.org: everything in ./public is served as-is.
   // Server code: src/worker.js, the Breaker voice relay (one Durable Object per channel) on /breaker/ws/*,
   // and src/wikirace.js, Wiki Race's daily board (/wikirace/api/*) and race rooms (/wikirace/ws/*).
+  // src/betterbettor.js stores BetterBettor+ passcode books on /betterbettor/api/book (Durable Object Book).
   // src/health-lock.js puts a passcode gate in front of /health (Health tracker).
   // Every other path goes straight to the static files.
   // Separate from the Cereal Bowlers league site (repo BuggySmalls/buggybuilds, Worker "buggybuilds") — never merge them.
@@ -12,17 +13,19 @@
     "directory": "./public",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/breaker/ws/*", "/wikirace/api/*", "/wikirace/ws/*", "/health", "/health/*"]
+    "run_worker_first": ["/breaker/ws/*", "/wikirace/api/*", "/wikirace/ws/*", "/health", "/health/*", "/betterbettor/api/*"]
   },
   "durable_objects": {
     "bindings": [
       { "name": "CHANNEL", "class_name": "Channel" },
       { "name": "RACE", "class_name": "Race" },
-      { "name": "DAILY", "class_name": "Daily" }
+      { "name": "DAILY", "class_name": "Daily" },
+      { "name": "BOOK", "class_name": "Book" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["Channel"] },
-    { "tag": "v2", "new_sqlite_classes": ["Race", "Daily"] }
+    { "tag": "v2", "new_sqlite_classes": ["Race", "Daily"] },
+    { "tag": "v3", "new_sqlite_classes": ["Book"] }
   ]
 }

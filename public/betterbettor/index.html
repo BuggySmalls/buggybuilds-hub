@@ -190,6 +190,17 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
 .erow:last-child{border-bottom:0}
 .erow-h{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:14px}
 .erow-h span:first-child{overflow-wrap:anywhere}
+.topl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sync{font-size:12px;color:var(--muted);font-weight:600}
+.sync.ok::before,.sync.busy::before,.sync.off::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}
+.sync.ok::before{background:var(--pos)}.sync.busy::before{background:var(--b)}.sync.off::before{background:var(--neg)}
+.gate{position:fixed;inset:0;background:var(--paper);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:48px 16px;overflow-y:auto}
+.gate-card{width:100%;max-width:420px}
+.gate-h{margin:0;font:700 28px var(--font-display);text-wrap:balance}
+.checkrow{display:flex;gap:10px;align-items:center;font-size:14px;cursor:pointer}
+input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:calc(100% - 32px)}
+.toast.on{opacity:1}
 @media (max-width:420px){
   .side-name{font-size:24px}
   .evbar{flex-basis:100%;justify-content:stretch}
@@ -201,7 +212,7 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
 <body>
 <div class="wrap">
   <nav class="top">
-    <a class="home" href="/">← BuGGy Builds</a>
+    <div class="topl"><a class="home" href="/">← BuGGy Builds</a><span class="sync" id="sync"></span><button type="button" class="btn sm ghost" id="bookBtn">Lock</button></div>
     <div class="evbar">
       <label class="sr" for="evSel">Event</label>
       <select id="evSel"></select>
@@ -400,6 +411,28 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
   </div>
 </div>
 
+<div id="gate" class="gate" hidden>
+  <form class="card gate-card" id="gateForm" novalidate>
+    <p class="brand">BetterBettor<b>+</b></p>
+    <h1 class="gate-h">Open your book</h1>
+    <p class="hint">Your passcode opens your own book. It's saved on the site, so it syncs between your phone and laptop. A new passcode starts a new book.</p>
+    <label class="f" for="gateCode">Passcode
+      <input id="gateCode" type="password" autocomplete="current-password" placeholder="6 or more characters">
+    </label>
+    <label class="checkrow" for="gateShow"><input type="checkbox" id="gateShow"> Show passcode</label>
+    <p class="err" id="gateErr"></p>
+    <div id="gateNew" class="f" hidden style="gap:10px">
+      <p class="hsum" style="color:var(--ink)">No book uses that passcode yet.</p>
+      <label class="checkrow" for="gateBring" id="gateBringWrap"><input type="checkbox" id="gateBring" checked> Start with the bets saved on this device</label>
+      <button type="button" class="btn primary" id="gateCreate">Create new book</button>
+    </div>
+    <button type="submit" class="btn primary" id="gateOpen">Open book</button>
+    <button type="button" class="btn ghost" id="gateLocal">Use without a passcode (this device only)</button>
+    <p class="hint">Anyone who types the same passcode opens the same book, so pick something only you would use.</p>
+  </form>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
 <script>
 (function(){
   'use strict';
@@ -463,19 +496,30 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
       bets: [], hedge: { side: 1, odds: '', amt: '' }, live: { a: '', b: '' }, tape: []
     };
   }
-  function load(){
-    let s = null;
-    try {
-      s = JSON.parse(localStorage.getItem(KEY));
-      if (!(s && Array.isArray(s.events) && s.events.length)) s = null;
-    } catch (e) { s = null; }
-    if (!s) { const ex = exampleEvent(); s = { cur: ex.id, events: [ex] }; }
+  const SESSION = 'buggybuilds.bettor.book';
+  const CACHE = 'buggybuilds.bettor.cache.';
+  function normalize(s){
+    if (!(s && Array.isArray(s.events) && s.events.length)) { const ex = blankEvent(); s = Object.assign({}, s || {}, { cur: ex.id, events: [ex] }); }
     if (!s.bank) s.bank = { start: '', goal: '100' };
-    s.events.forEach((e) => { if (!e.live) e.live = { a: '', b: '' }; if (!Array.isArray(e.tape)) e.tape = []; });
+    s.events.forEach((e) => { if (!e.live) e.live = { a: '', b: '' }; if (!Array.isArray(e.tape)) e.tape = []; if (!e.hedge) e.hedge = { side: 1, odds: '', amt: '' }; });
+    if (!s.events.some((e) => e.id === s.cur)) s.cur = s.events[0].id;
     return s;
   }
-  const store = load();
-  function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  function readLocal(){ try { const s = JSON.parse(localStorage.getItem(KEY)); return s && Array.isArray(s.events) && s.events.length ? s : null; } catch (e) { return null; } }
+  function loadLocal(){
+    let s = readLocal();
+    if (!s) { const ex = exampleEvent(); s = { cur: ex.id, events: [ex] }; }
+    return normalize(s);
+  }
+  let store = loadLocal();
+  let mode = 'local'; // 'local' = this device only, 'book' = passcode book synced with the site
+  let book = null;    // { key, v, dirty, status, inflight, again }
+  const cacheKey = () => CACHE + book.key.slice(0, 20);
+  function writeCache(){ try { localStorage.setItem(cacheKey(), JSON.stringify({ v: book.v, dirty: book.dirty, data: store })); } catch (e) {} }
+  function save(){
+    if (mode === 'book' && book) { book.dirty = true; writeCache(); queueSync(); }
+    else { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  }
   const ev = () => store.events.find((e) => e.id === store.cur) || store.events[0];
 
   const sideName = (e, i) => (e.sides[i] || '').trim() || (i ? 'Side B' : 'Side A');
@@ -1171,8 +1215,147 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
   });
   addEventListener('hashchange', () => setTab(location.hash.slice(1)));
 
+  /* ---------- Passcode books ---------- */
+  let syncTimer = 0, retryTimer = 0, toastT = 0, pendingKey = null;
+  async function sha256(t){
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+    return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+  }
+  async function api(method, key, body){
+    const headers = { 'X-Book': key };
+    if (body) headers['Content-Type'] = 'application/json';
+    const r = await fetch('/betterbettor/api/book', { method, cache: 'no-store', headers, body: body ? JSON.stringify(body) : undefined });
+    let j = null; try { j = await r.json(); } catch (e) {}
+    return { status: r.status, j };
+  }
+  function toast(msg){
+    const t = $('toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600);
+  }
+  function renderSync(){
+    const el = $('sync'), btn = $('bookBtn');
+    if (mode === 'book' && book) {
+      const m = { ok: ['ok', 'Synced'], busy: ['busy', 'Saving…'], off: ['off', 'Offline, will sync'], load: ['busy', 'Loading…'] }[book.status] || ['', ''];
+      el.className = 'sync ' + m[0]; el.textContent = m[1]; btn.textContent = 'Lock';
+    } else { el.className = 'sync'; el.textContent = 'This device only'; btn.textContent = 'Use a passcode'; }
+  }
+  function setSync(st){ if (book) book.status = st; renderSync(); }
+  function resetUI(){ F = null; $('form').hidden = true; editOutcomes = false; ledgerOpen = null; lastTrade = null; floorF = null; }
+  function showAll(){ resetUI(); renderAll(); setTab(curTab); }
+  function queueSync(){ clearTimeout(syncTimer); syncTimer = setTimeout(sync, 700); setSync('busy'); }
+  function adopt(j){ store = normalize(j.data); book.v = j.v; book.dirty = false; writeCache(); showAll(); setSync('ok'); }
+  async function sync(){
+    if (mode !== 'book' || !book) return;
+    if (book.inflight) { book.again = true; return; }
+    const b = book; b.inflight = true;
+    try {
+      const { status, j } = await api('PUT', b.key, { v: b.v, data: store });
+      if (book !== b) return;
+      if (status === 200) { b.v = j.v; b.dirty = false; writeCache(); setSync('ok'); }
+      else if (status === 409 && j) { adopt(j); toast('Updated from your other device'); }
+      else if (status === 404) {
+        const r = await api('PUT', b.key, { v: 0, data: store, create: true });
+        if (r.status !== 200) throw new Error('save');
+        b.v = r.j.v; b.dirty = false; writeCache(); setSync('ok');
+      } else throw new Error('save');
+    } catch (e) {
+      if (book === b) { setSync('off'); clearTimeout(retryTimer); retryTimer = setTimeout(sync, 15000); }
+    } finally {
+      b.inflight = false;
+      if (b.again && book === b) { b.again = false; sync(); }
+    }
+  }
+  async function refreshBook(){
+    if (mode !== 'book' || !book || book.inflight) return;
+    if (book.dirty) { sync(); return; }
+    try {
+      const { status, j } = await api('GET', book.key);
+      if (status === 200 && j.v !== book.v) { adopt(j); toast('Updated from your other device'); }
+      else if (status === 200) setSync('ok');
+    } catch (e) { setSync('off'); }
+  }
+  async function openBook(key){
+    mode = 'book'; book = { key, v: 0, dirty: false, status: 'load' };
+    try { localStorage.setItem(SESSION, JSON.stringify({ key })); } catch (e) {}
+    let cached = null; try { cached = JSON.parse(localStorage.getItem(cacheKey())); } catch (e) {}
+    if (cached && cached.data) { store = normalize(cached.data); book.v = cached.v || 0; book.dirty = !!cached.dirty; showAll(); }
+    renderSync();
+    try {
+      const { status, j } = await api('GET', key);
+      if (status === 200) {
+        if (cached && j.v === book.v) { if (book.dirty) sync(); else setSync('ok'); }
+        else { if (cached && book.dirty) toast('Updated from your other device'); adopt(j); }
+      } else if (status === 404) {
+        if (cached) sync(); else return 'missing';
+      } else throw new Error('get');
+    } catch (e) { if (!cached) return 'error'; setSync('off'); }
+    return 'ok';
+  }
+  function goLocal(){
+    mode = 'local'; book = null; store = loadLocal(); showAll(); renderSync();
+  }
+  function showGate(msg){
+    $('gate').hidden = false; $('gateErr').textContent = msg || ''; $('gateNew').hidden = true; $('gateOpen').hidden = false;
+    $('gateCode').value = ''; pendingKey = null;
+    setTimeout(() => $('gateCode').focus(), 50);
+  }
+  function hideGate(){ $('gate').hidden = true; }
+  $('gateShow').addEventListener('change', (x) => { $('gateCode').type = x.target.checked ? 'text' : 'password'; });
+  $('gateCode').addEventListener('input', () => { $('gateErr').textContent = ''; $('gateNew').hidden = true; $('gateOpen').hidden = false; pendingKey = null; });
+  $('gateForm').addEventListener('submit', async (x) => {
+    x.preventDefault();
+    const code = $('gateCode').value.trim();
+    if (code.length < 6) { $('gateErr').textContent = 'Use at least 6 characters.'; return; }
+    const btn = $('gateOpen'); btn.disabled = true; btn.textContent = 'Opening…';
+    try {
+      const key = await sha256('betterbettor:' + code);
+      const { status } = await api('GET', key);
+      if (status === 200) { hideGate(); const r = await openBook(key); if (r !== 'ok') showGate('Couldn’t open that book. Try again.'); }
+      else if (status === 404) {
+        pendingKey = key;
+        const loc = readLocal();
+        $('gateBringWrap').hidden = !(loc && loc.events.some((e) => !e.example));
+        $('gateNew').hidden = false; $('gateOpen').hidden = true;
+      } else $('gateErr').textContent = 'Couldn’t reach the site. Check your connection and try again.';
+    } catch (e) { $('gateErr').textContent = 'Couldn’t reach the site. Check your connection and try again.'; }
+    finally { btn.disabled = false; btn.textContent = 'Open book'; }
+  });
+  $('gateCreate').addEventListener('click', async () => {
+    if (!pendingKey) return;
+    const btn = $('gateCreate'); btn.disabled = true; btn.textContent = 'Creating…';
+    const bring = !$('gateBringWrap').hidden && $('gateBring').checked;
+    const data = bring ? normalize(readLocal()) : normalize({});
+    try {
+      const { status, j } = await api('PUT', pendingKey, { v: 0, data, create: true });
+      if (status === 200 || status === 409) {
+        const key = pendingKey;
+        try { localStorage.setItem(CACHE + key.slice(0, 20), JSON.stringify({ v: status === 200 ? j.v : j.v, dirty: false, data: status === 200 ? data : j.data })); } catch (e) {}
+        hideGate(); await openBook(key); toast(status === 200 ? 'New book created' : 'Opened your book');
+      } else $('gateErr').textContent = 'Couldn’t create the book. Try again.';
+    } catch (e) { $('gateErr').textContent = 'Couldn’t reach the site. Check your connection and try again.'; }
+    finally { btn.disabled = false; btn.textContent = 'Create new book'; }
+  });
+  $('gateLocal').addEventListener('click', () => {
+    try { localStorage.setItem(SESSION, JSON.stringify({ local: true })); } catch (e) {}
+    hideGate(); goLocal();
+  });
+  $('bookBtn').addEventListener('click', () => {
+    if (mode === 'book' && book) {
+      if (book.dirty) { toast('Still saving. Try again in a moment.'); sync(); return; }
+      try { localStorage.removeItem(cacheKey()); localStorage.removeItem(SESSION); } catch (e) {}
+      clearTimeout(syncTimer); clearTimeout(retryTimer);
+      goLocal(); showGate();
+    } else showGate();
+  });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshBook(); });
+  addEventListener('online', () => { if (book && book.dirty) sync(); });
+
   renderAll();
   setTab(location.hash.slice(1));
+  renderSync();
+  let sess = null; try { sess = JSON.parse(localStorage.getItem(SESSION)); } catch (e) {}
+  if (sess && sess.key) openBook(sess.key).then((r) => { if (r !== 'ok') { goLocal(); showGate(r === 'missing' ? 'That book wasn’t found. Enter your passcode again.' : 'Couldn’t reach the site to open your book.'); } });
+  else if (!(sess && sess.local)) showGate();
 })();
 </script>
 </body>
