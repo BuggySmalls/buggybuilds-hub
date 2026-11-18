@@ -201,6 +201,23 @@ tr.net td{font-weight:700;font-size:15px;border-bottom:0}
 input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:calc(100% - 32px)}
 .toast.on{opacity:1}
+.pop{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.42);display:flex;align-items:flex-end;justify-content:center;padding:12px}
+.pop[hidden]{display:none}
+.pop-card{width:100%;max-width:440px;max-height:calc(100dvh - 24px);overflow-y:auto;background:var(--surface);border:1px solid var(--rule);border-radius:18px;padding:18px 16px 14px;box-shadow:0 12px 40px rgba(0,0,0,.25);animation:popUp .18s ease-out}
+@media (min-width:600px){.pop{align-items:center}}
+@keyframes popUp{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.pop-card{animation:none}}
+.pop-h{margin:0 0 4px;font:700 20px var(--font-display)}
+.pop-pos{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0 0 12px;font-size:13px;color:var(--muted)}
+.pop-list{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+.pop-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--rule);border-radius:12px;background:var(--paper);color:var(--ink);font:inherit;cursor:pointer}
+.pop-row:hover{border-color:var(--muted)}
+.pop-row .k{font-weight:600;font-size:14px}
+.pop-row .o{font:600 17px var(--font-num);text-align:right}
+.pop-row .d{font-size:12.5px;color:var(--muted)}
+.pop-row .d.r{text-align:right}
+.pop-row.be{border-color:var(--ink)}
+.pop-act{display:flex;gap:8px}.pop-act .btn{flex:1}
 .sbet{border:1px solid var(--rule);border-left:4px solid var(--a);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
 .sbet.s1{border-left-color:var(--b)}
 .sbet .seg{flex:1;min-width:0}
@@ -497,6 +514,16 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
   </form>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="watch" class="pop" hidden>
+  <div class="pop-card" role="dialog" aria-modal="true" aria-labelledby="watchH">
+    <h2 class="pop-h" id="watchH">Odds to watch for</h2>
+    <div id="watchBody"></div>
+    <div class="pop-act">
+      <button type="button" class="btn" id="watchLive">Open Live</button>
+      <button type="button" class="btn primary" id="watchOk">Got it</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -763,7 +790,58 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
     if (F.editId) Object.assign(e.bets.find((x) => x.id === F.editId), data);
     else e.bets.push(Object.assign({ id: uid() }, data));
     F = null; $('form').hidden = true;
-    save(); refresh();
+    save(); refresh(); showWatch();
+  }
+
+  /* ---------- Odds to watch pop-up (after a bet is saved) ---------- */
+  // For each profit T you could lock: wait for the weaker side at d = (high − low) / (high − T), then bet (high − low) / d on it.
+  function watchLevels(e){
+    const { n } = sideNets(e);
+    const low = n[0] < n[1] ? 0 : 1, nl = n[low], nh = n[1 - low];
+    const lv = [];
+    if (nl < -0.004 && nh > 0.004) lv.push({ T: 0, be: true });
+    const rd = (x) => nh >= 20 ? Math.round(x) : r2(x);
+    [0.25, 0.5, 0.75].forEach((f) => {
+      const T = rd(nh * f);
+      if (T > Math.max(nl, 0) + 0.5 && T < nh - 0.004 && !lv.some((x) => Math.abs(x.T - T) < 0.5)) lv.push({ T });
+    });
+    lv.forEach((x) => { x.d = (nh - nl) / (nh - x.T); x.stake = (nh - nl) / x.d; });
+    return { n, low, nl, nh, lv: lv.filter((x) => x.d > 1.0001) };
+  }
+  function showWatch(){
+    const e = ev();
+    if (!e.bets.length) return;
+    const w = watchLevels(e), other = sideName(e, w.low), dNow = liveD(e, w.low);
+    let h = `<p class="pop-pos"><span>${esc(sideName(e, 0))} wins <b class="n ${tone(w.n[0])}">${signed(w.n[0])}</b></span><span>${esc(sideName(e, 1))} wins <b class="n ${tone(w.n[1])}">${signed(w.n[1])}</b></span></p>`;
+    if (w.nl >= -0.004) {
+      h += `<p class="hsum" style="margin-bottom:12px">You’re already locked at <b class="n ${tone(w.nl)}">${signed(w.nl)}</b> or better either way.${w.lv.length ? ' To lock more, watch ' + esc(other) + ':' : ''}</p>`;
+    } else if (w.nh <= 0.004) {
+      h += `<p class="hsum" style="margin-bottom:12px">No odds get you back to even yet: your best case is <b class="n ${tone(w.nh)}">${signed(w.nh)}</b>. Add to your position first.</p>`;
+    } else {
+      h += `<p class="hint" style="margin-bottom:10px">Watch ${esc(other)}. When their odds hit these numbers or longer, bet the amount shown on them.</p>`;
+    }
+    if (w.lv.length) {
+      h += '<ul class="pop-list">' + w.lv.map((x) => {
+        const now = dNow && dNow >= x.d - 1e-9 ? ' · <b class="pos">there now</b>' : '';
+        return `<li><button type="button" class="pop-row${x.be ? ' be' : ''}" data-t="${x.T}">
+          <span class="k">${x.be ? 'Break even' : 'Lock <span class="n pos">' + signed(x.T) + '</span>'}</span>
+          <span class="o n">${american(x.d)}</span>
+          <span class="d">Bet ${money(r2(x.stake))} on ${esc(other)}${now}</span>
+          <span class="d r n">${(100 / x.d).toFixed(1)}%</span>
+        </button></li>`;
+      }).join('') + '</ul>';
+    }
+    $('watchBody').innerHTML = h;
+    $('watch').hidden = false;
+    setTimeout(() => $('watchOk').focus(), 30);
+  }
+  function hideWatch(){ $('watch').hidden = true; }
+  function goLive(T){
+    const e = ev();
+    if (T != null) { e.liveTarget = String(T); save(); }
+    hideWatch();
+    if (location.hash !== '#live') location.hash = 'live'; else setTab('live');
+    renderTarget();
   }
 
   /* ---------- Hedge ---------- */
@@ -1268,6 +1346,13 @@ input[type=checkbox]{width:20px;height:20px;padding:0;flex:none;accent-color:var
   });
 
   $('form').addEventListener('submit', (x) => { x.preventDefault(); saveForm(); });
+  $('watchOk').addEventListener('click', hideWatch);
+  $('watchLive').addEventListener('click', () => goLive(null));
+  $('watch').addEventListener('click', (x) => {
+    if (x.target === $('watch')) { hideWatch(); return; }
+    const r = x.target.closest('.pop-row'); if (r) goLive(r.dataset.t);
+  });
+  addEventListener('keydown', (x) => { if (x.key === 'Escape' && !$('watch').hidden) hideWatch(); });
   $('form').addEventListener('input', () => { if (F) { $('fErr').textContent = ''; renderDerived(); } });
   $('form').addEventListener('click', (x) => {
     if (!F) return;
